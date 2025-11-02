@@ -1,0 +1,64 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:18-alpine
+    container_name: compliance-engine-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: compliance_engine
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent data volume - survives container restarts
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Custom initialization scripts
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d compliance_engine"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+
+  # FastAPI Backend (optional - for full stack development)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: compliance-engine-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/compliance_engine
+      - ENVIRONMENT=development
+      - DEBUG=true
+    volumes:
+      # Mount source code for development
+      - .:/app
+      - /app/.venv  # Exclude virtual environment
+    networks:
+      - compliance-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - full-stack  # Only start with --profile full-stack
+
+# Named volumes for persistent data
+volumes:
+  postgres_data:
+    name: compliance-engine-postgres-data
+    driver: local
+
+# Dedicated network for services
+networks:
+  compliance-network:
+    name: compliance-engine-network
+    driver: bridge

@@ -452,3 +452,4 @@ Cargo.lock
 # Local configuration overrides
 config.local.*
 settings.local.*
+*storybook.log

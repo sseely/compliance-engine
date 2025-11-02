@@ -1,0 +1,206 @@
+# Deployment Gate: OAuth Provider Verification Check
+# 
+# This workflow checks that OAuth providers have been manually verified
+# within the last 10 days before allowing deployment to production.
+
+name: Production Deployment Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      bypass_auth_check:
+        description: 'Bypass OAuth verification check (emergency deployments only)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  oauth-verification-check:
+    runs-on: ubuntu-latest
+    name: OAuth Provider Verification Gate
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+        
+      - name: Check OAuth Provider Verification Status
+        id: auth-check
+        working-directory: frontend
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          VERIFICATION_API_KEY: ${{ secrets.VERIFICATION_API_KEY }}
+        run: |
+          # Create verification check script
+          cat > check-oauth-verification.js << 'EOF'
+          const https = require('https');
+          const url = require('url');
+          
+          const stagingUrl = process.env.STAGING_URL || 'https://staging.compliance-engine.com';
+          const apiKey = process.env.VERIFICATION_API_KEY;
+          
+          async function checkVerification() {
+            return new Promise((resolve, reject) => {
+              const options = {
+                hostname: url.parse(stagingUrl).hostname,
+                port: 443,
+                path: '/api/auth-verification?environment=staging&maxDaysOld=10',
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${apiKey}`,
+                  'Content-Type': 'application/json'
+                }
+              };
+              
+              const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => data += chunk);
+                res.on('end', () => {
+                  try {
+                    const result = JSON.parse(data);
+                    resolve(result);
+                  } catch (error) {
+                    reject(error);
+                  }
+                });
+              });
+              
+              req.on('error', reject);
+              req.setTimeout(10000, () => reject(new Error('Request timeout')));
+              req.end();
+            });
+          }
+          
+          async function main() {
+            try {
+              console.log('🔍 Checking OAuth provider verification status...');
+              const result = await checkVerification();
+              
+              console.log('\n📊 Verification Summary:');
+              console.log(`Last verification: ${result.summary.last_verification || 'Never'}`);
+              console.log(`Days since verification: ${result.summary.days_since_verification}`);
+              console.log(`All providers verified: ${result.summary.all_providers_verified}`);
+              console.log(`Deployment allowed: ${result.summary.deployment_allowed}`);
+              
+              console.log('\n🔐 Provider Status:');
+              result.summary.providers.forEach(provider => {
+                const status = provider.status === 'success' ? '✅' : 
+                             provider.status === 'failure' ? '❌' : '⭕';
+                const lastTest = provider.timestamp ? 
+                  new Date(provider.timestamp).toLocaleDateString() : 'Never';
+                console.log(`${status} ${provider.provider}: ${provider.status} (${lastTest})`);
+              });
+              
+              if (result.configValidation && !result.configValidation.valid) {
+                console.log('\n⚠️ Configuration Issues:');
+                result.configValidation.issues.forEach(issue => {
+                  console.log(`- ${issue}`);
+                });
+              }
+              
+              // Set output for GitHub Actions
+              console.log(`\n::set-output name=deployment_allowed::${result.summary.deployment_allowed}`);
+              console.log(`::set-output name=days_since_verification::${result.summary.days_since_verification}`);
+              console.log(`::set-output name=last_verification::${result.summary.last_verification || 'never'}`);
+              
+              if (!result.summary.deployment_allowed) {
+                console.log('\n❌ DEPLOYMENT BLOCKED');
+                console.log('OAuth providers must be verified within the last 10 days.');
+                console.log(`Please visit ${stagingUrl}/admin/auth-verification to run manual tests.`);
+                process.exit(1);
+              } else {
+                console.log('\n✅ DEPLOYMENT APPROVED');
+                console.log('All OAuth providers have been verified within the last 10 days.');
+              }
+              
+            } catch (error) {
+              console.error('❌ Failed to check verification status:', error.message);
+              
+              // If we can't reach the verification API, we should block deployment
+              // unless this is an emergency bypass
+              const bypassCheck = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && 
+                                 process.env.INPUT_BYPASS_AUTH_CHECK === 'true';
+              
+              if (bypassCheck) {
+                console.log('⚠️ EMERGENCY BYPASS ACTIVATED - Proceeding with deployment');
+                console.log('::set-output name=deployment_allowed::true');
+                console.log('::set-output name=bypass_used::true');
+              } else {
+                console.log('::set-output name=deployment_allowed::false');
+                process.exit(1);
+              }
+            }
+          }
+          
+          main();
+          EOF
+          
+          # Run the verification check
+          node check-oauth-verification.js
+          
+      - name: Comment on PR (if verification failed)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const stagingUrl = process.env.STAGING_URL || 'https://staging.compliance-engine.com';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔐 OAuth Verification Required
+              
+              **Deployment blocked:** OAuth providers have not been verified within the last 10 days.
+              
+              ### Required Action:
+              1. Visit [OAuth Verification Page](${stagingUrl}/admin/auth-verification)
+              2. Test all social login providers (Google, Microsoft, LinkedIn, Apple)
+              3. Ensure all providers show green checkmarks
+              4. Re-run this workflow
+              
+              ### Provider Requirements:
+              - ✅ Google OAuth
+              - ✅ Microsoft Azure AD
+              - ✅ LinkedIn (manual test required)
+              - ✅ Apple Sign In (manual test required)
+              
+              This security gate ensures that authentication is working correctly before production deployment.`
+            });
+            
+      - name: Generate deployment report
+        if: always()
+        run: |
+          echo "## 🚀 Deployment Gate Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.auth-check.outputs.deployment_allowed == 'true' && '✅ Approved' || '❌ Blocked' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Last OAuth Verification:** ${{ steps.auth-check.outputs.last_verification }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Days Since Verification:** ${{ steps.auth-check.outputs.days_since_verification }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.auth-check.outputs.deployment_allowed }}" == "true" ]]; then
+            echo "All OAuth providers have been successfully verified. Deployment may proceed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Action Required:** Visit the [OAuth Verification Page](${STAGING_URL:-https://staging.compliance-engine.com}/admin/auth-verification) to test all providers." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ steps.auth-check.outputs.bypass_used }}" == "true" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🚨 **EMERGENCY BYPASS USED** - Manual verification recommended after deployment." >> $GITHUB_STEP_SUMMARY
+          fi
