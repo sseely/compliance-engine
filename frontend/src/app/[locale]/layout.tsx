@@ -4,6 +4,8 @@ import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import '@/styles/globals.scss';
 import { locales, type Locale } from '@/i18n/config';
+import { AccessibilityProvider } from '@/components/AccessibilityProvider';
+import { LanguageTracker } from '@/components/LanguageTracker';
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
@@ -58,7 +60,31 @@ export default async function LocaleLayout({
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <AccessibilityProvider>
+            <LanguageTracker />
+            {/* Skip navigation links */}
+            <a href="#main-content" className="skip-link">
+              Skip to main content
+            </a>
+            <a href="#navigation" className="skip-link">
+              Skip to navigation
+            </a>
+            
+            {/* Main application structure */}
+            <div className="app-layout">
+              <header id="navigation" role="banner">
+                {/* Navigation will be added when we implement auth */}
+              </header>
+              
+              <main id="main-content" role="main" tabIndex={-1}>
+                {children}
+              </main>
+              
+              <footer role="contentinfo">
+                {/* Footer content will be added later */}
+              </footer>
+            </div>
+          </AccessibilityProvider>
         </NextIntlClientProvider>
       </body>
     </html>

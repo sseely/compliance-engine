@@ -1,7 +1,7 @@
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
-.container {
+.license-verification-result-container {
   max-width: 800px;
   margin: 0 auto;
   padding: $spacing-4;
@@ -11,11 +11,11 @@
   }
 }
 
-.card {
+.license-verification-result-card {
   @include card;
 }
 
-.header {
+.license-verification-result-header {
   @include card-header;
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
   }
 }
 
-.statusSection {
+.license-verification-result-status-section {
   display: flex;
   align-items: flex-start;
   gap: $spacing-4;

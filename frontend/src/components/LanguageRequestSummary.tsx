@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import styles from './LanguageRequestSummary.module.scss';
+import { API_CONFIG } from '@/constants';
 
 interface LanguageSummary {
   language_code: string;
@@ -19,7 +19,7 @@ interface LanguageRequestSummaryProps {
 }
 
 export default function LanguageRequestSummary({ 
-  apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  apiUrl = process.env.NEXT_PUBLIC_API_URL || API_CONFIG.DEFAULT_BASE_URL,
   className 
 }: LanguageRequestSummaryProps) {
   const [data, setData] = useState<LanguageSummary[]>([]);
@@ -82,14 +82,14 @@ export default function LanguageRequestSummary({
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading language request data...</div>;
+    return <div className="loading">Loading language request data...</div>;
   }
 
   if (error) {
     return (
-      <div className={styles.error}>
+      <div className="error">
         <p>Error loading data: {error}</p>
-        <button onClick={fetchLanguageData} className={styles.retryButton}>
+        <button onClick={fetchLanguageData} className="retryButton">
           Retry
         </button>
       </div>
@@ -97,22 +97,22 @@ export default function LanguageRequestSummary({
   }
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
-      <div className={styles.header}>
+    <div className={`language-request-summary-container ${className || ''}`}>
+      <div className="language-request-summary-header">
         <h2>Language Support Requests</h2>
         <p>Global platform data: Languages requested by users across all customers</p>
-        <button onClick={fetchLanguageData} className={styles.refreshButton}>
+        <button onClick={fetchLanguageData} className="refreshButton">
           Refresh Data
         </button>
       </div>
 
       {data.length === 0 ? (
-        <div className={styles.empty}>
+        <div className="empty">
           No language requests recorded yet.
         </div>
       ) : (
-        <div className={styles.table}>
-          <div className={styles.tableHeader}>
+        <div className="table">
+          <div className="tableHeader">
             <div>Language</div>
             <div>Code</div>
             <div>Requests</div>
@@ -122,23 +122,23 @@ export default function LanguageRequestSummary({
           </div>
           
           {data.map((item) => (
-            <div key={item.language_code} className={styles.tableRow}>
-              <div className={styles.languageName}>
+            <div key={item.language_code} className="tableRow">
+              <div className="languageName">
                 {getLanguageName(item.language_code)}
               </div>
-              <div className={styles.languageCode}>
+              <div className="languageCode">
                 {item.language_code}
               </div>
-              <div className={styles.requestCount}>
+              <div className="requestCount">
                 {item.request_count}
               </div>
-              <div className={styles.uniqueIps}>
+              <div className="uniqueIps">
                 {item.unique_ips}
               </div>
-              <div className={styles.uniqueSessions}>
+              <div className="uniqueSessions">
                 {item.unique_sessions}
               </div>
-              <div className={styles.lastRequest}>
+              <div className="lastRequest">
                 {formatDate(item.last_request)}
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function LanguageRequestSummary({
         </div>
       )}
 
-      <div className={styles.footer}>
+      <div className="footer">
         <p>
           <strong>Platform Admin View:</strong> This shows global language requests across all customers. 
           Each user can only vote once per session for each language.

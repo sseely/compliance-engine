@@ -34,3 +34,40 @@ export const DISCIPLINARY_STATUSES = {
   ACTIVE: 'active',
   RESOLVED: 'resolved',
 } as const;
+
+// Validation constants
+export const VALIDATION_RULES = {
+  LICENSE_NUMBER_MIN_LENGTH: 3,
+  FIRST_NAME_MIN_LENGTH: 2,
+  LAST_NAME_MIN_LENGTH: 2,
+  LANGUAGE_CODE_MIN_LENGTH: 2,
+} as const;
+
+// Confidence score thresholds
+export const CONFIDENCE_THRESHOLDS = {
+  HIGH: 90,
+  MEDIUM: 70,
+  MIN: 0,
+  MAX: 100,
+} as const;
+
+// Timing constants (in milliseconds)
+export const TIMING = {
+  ACCESSIBILITY_DEBOUNCE: 100,
+  SUCCESS_MESSAGE_DURATION: 5000,
+  DEMO_VERIFICATION_DELAY: 2000,
+  TEST_TIMEOUT: 100,
+} as const;
+
+// SVG icon dimensions
+export const ICON_SIZES = {
+  SMALL: 16,
+  MEDIUM: 24,
+  LARGE: 32,
+} as const;
+
+// Default API configuration
+export const API_CONFIG = {
+  DEFAULT_BASE_URL: 'http://localhost:8000',
+  DEFAULT_PORT: 8000,
+} as const;

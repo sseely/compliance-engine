@@ -1,0 +1,279 @@
+// Accessibility utilities and enhancements
+@use 'variables' as *;
+
+// Screen reader only content
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// Show content only for screen readers when focused
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: inherit !important;
+  margin: inherit !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: inherit !important;
+}
+
+// Skip navigation links
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--color-brand-primary);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: $border-radius-md;
+  z-index: 9999;
+  font-weight: $font-weight-semibold;
+  
+  &:focus {
+    top: 6px;
+  }
+}
+
+// High contrast mode improvements
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #{$neutral-900};
+    --color-text-secondary: #{$neutral-900};
+    --color-text-muted: #{$neutral-800};
+  }
+  
+  // Stronger borders for all interactive elements
+  button,
+  input,
+  select,
+  textarea,
+  .card,
+  .badge {
+    border: 2px solid var(--color-text-primary) !important;
+  }
+  
+  // Ensure links are underlined in high contrast
+  a {
+    text-decoration: underline !important;
+  }
+  
+  // Make status indicators more distinct
+  .status-badge {
+    font-weight: $font-weight-bold !important;
+    border-width: 3px !important;
+  }
+  
+  // Enhance focus visibility
+  :focus {
+    outline: 3px solid var(--color-brand-primary) !important;
+    outline-offset: 2px !important;
+  }
+}
+
+// Reduced motion preferences
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  // Remove transform animations that might cause motion sensitivity
+  .spinner,
+  .loading {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+// Dark mode preferences (system-level)
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #{$neutral-900};
+    --color-surface: #{$neutral-800};
+    --color-text-primary: #{$neutral-100};
+    --color-text-secondary: #{$neutral-300};
+    --color-text-muted: #{$neutral-400};
+    --color-border: #{$neutral-700};
+  }
+}
+
+// Focus management utilities
+.focus-trap {
+  // Used for modal/dialog focus trapping
+  &:focus {
+    outline: none;
+  }
+}
+
+// ARIA live regions
+.live-region {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.live-region[aria-live="polite"] {
+  // Announced after current speech
+}
+
+.live-region[aria-live="assertive"] {
+  // Interrupts current speech
+}
+
+// Touch target improvements for mobile accessibility
+@mixin touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  
+  @media (pointer: coarse) {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+// Apply to interactive elements
+button,
+a,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  @include touch-target;
+}
+
+// Color contrast utilities
+.high-contrast {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-text-primary);
+}
+
+.low-contrast {
+  opacity: 0.7;
+  
+  @media (prefers-contrast: high) {
+    opacity: 1;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// Error and status announcements
+.error-message {
+  color: var(--color-error);
+  font-weight: $font-weight-semibold;
+  
+  &::before {
+    content: "⚠ ";
+    font-weight: $font-weight-bold;
+  }
+}
+
+.success-message {
+  color: var(--color-success);
+  font-weight: $font-weight-semibold;
+  
+  &::before {
+    content: "✓ ";
+    font-weight: $font-weight-bold;
+  }
+}
+
+.warning-message {
+  color: var(--color-warning);
+  font-weight: $font-weight-semibold;
+  
+  &::before {
+    content: "! ";
+    font-weight: $font-weight-bold;
+  }
+}
+
+// Keyboard navigation improvements
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+  border-radius: $border-radius-sm;
+}
+
+// Remove focus outline for mouse users (but keep for keyboard)
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// Loading states with accessibility
+.loading-content {
+  &[aria-busy="true"] {
+    opacity: 0.6;
+    pointer-events: none;
+    
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: inherit;
+    }
+  }
+}
+
+// Print accessibility
+@media print {
+  // Ensure important content is visible
+  .no-print {
+    display: none !important;
+  }
+  
+  // Show URLs for links
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  // Don't show URLs for internal links or JavaScript
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+  
+  // Ensure sufficient contrast for printing
+  * {
+    color: #000 !important;
+    background: transparent !important;
+  }
+}
+
+// Color-blind friendly utilities
+.colorblind-safe {
+  // Use patterns/icons in addition to color
+  &.status-error::before {
+    content: "✗ ";
+  }
+  
+  &.status-success::before {
+    content: "✓ ";
+  }
+  
+  &.status-warning::before {
+    content: "! ";
+  }
+}

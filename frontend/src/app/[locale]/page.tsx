@@ -5,12 +5,12 @@ import LicenseVerificationResult from '@/components/LicenseVerificationResult';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { FormData, VerificationResult } from '@/types';
-import { LICENSE_STATUSES } from '@/constants';
+import { LICENSE_STATUSES, TIMING } from '@/constants';
 
 // Mock API function for development
 async function mockVerifyLicense(data: FormData): Promise<VerificationResult> {
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise(resolve => setTimeout(resolve, TIMING.DEMO_VERIFICATION_DELAY));
   
   // Mock response based on license number
   const mockSuccess = data.licenseNumber.toLowerCase().includes('valid');

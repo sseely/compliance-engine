@@ -1,13 +1,13 @@
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
-.container {
+.language-request-summary-container {
   @include card;
   max-width: 1000px;
   margin: 0 auto;
 }
 
-.header {
+.language-request-summary-header {
   @include card-header;
   display: flex;
   flex-direction: column;

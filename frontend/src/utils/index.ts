@@ -1,6 +1,7 @@
 // Shared utility functions for the compliance engine frontend
 
 import type { LicenseStatus, DisciplinaryStatus } from '@/types';
+import { CONFIDENCE_THRESHOLDS } from '@/constants';
 
 /**
  * Gets the appropriate CSS class for a status badge based on status
@@ -26,8 +27,8 @@ export const getStatusBadgeClass = (status: LicenseStatus | DisciplinaryStatus, 
  * Gets the appropriate color for confidence display based on confidence level
  */
 export const getConfidenceColor = (confidence: number): string => {
-  if (confidence >= 90) return 'var(--color-success)';
-  if (confidence >= 70) return 'var(--color-warning)';
+  if (confidence >= CONFIDENCE_THRESHOLDS.HIGH) return 'var(--color-success)';
+  if (confidence >= CONFIDENCE_THRESHOLDS.MEDIUM) return 'var(--color-warning)';
   return 'var(--color-error)';
 };
 

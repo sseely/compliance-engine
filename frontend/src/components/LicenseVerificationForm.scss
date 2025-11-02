@@ -1,7 +1,7 @@
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
-.container {
+.license-verification-container {
   max-width: 800px;
   margin: 0 auto;
   padding: $spacing-4;
@@ -11,12 +11,12 @@
   }
 }
 
-.card {
+.license-verification-card {
   @include card;
   margin-bottom: $spacing-8;
 }
 
-.header {
+.license-verification-header {
   @include card-header;
   text-align: center;
   
@@ -25,7 +25,7 @@
   }
 }
 
-.title {
+.license-verification-title {
   font-size: $font-size-2xl;
   font-weight: $font-weight-semibold;
   color: var(--color-text-primary);
@@ -36,7 +36,7 @@
   }
 }
 
-.subtitle {
+.license-verification-subtitle {
   font-size: $font-size-base;
   color: var(--color-text-secondary);
   margin-bottom: 0;
@@ -46,11 +46,11 @@
   }
 }
 
-.form {
+.license-verification-form {
   @include card-body;
 }
 
-.grid {
+.license-verification-grid {
   display: grid;
   gap: $spacing-6;
   margin-bottom: $spacing-8;
@@ -65,17 +65,17 @@
   }
 }
 
-.field {
+.license-verification-field {
   display: flex;
   flex-direction: column;
 }
 
-.label {
+.license-verification-label {
   @include form-label;
 }
 
-.input,
-.select {
+.license-verification-input,
+.license-verification-select {
   @include form-control;
   
   &:hover:not(:disabled) {
@@ -83,7 +83,7 @@
   }
 }
 
-.select {
+.license-verification-select {
   cursor: pointer;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right $spacing-3 center;
@@ -96,7 +96,7 @@
   }
 }
 
-.inputError {
+.license-verification-input-error {
   border-color: var(--color-error);
   
   &:focus {
@@ -109,11 +109,11 @@
   }
 }
 
-.error {
+.license-verification-error {
   @include form-error;
 }
 
-.actions {
+.license-verification-actions {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -126,7 +126,7 @@
   }
 }
 
-.submitButton {
+.license-verification-submit-button {
   @include button-primary;
   min-width: 200px;
   position: relative;
@@ -140,7 +140,7 @@
   }
 }
 
-.spinner {
+.license-verification-spinner {
   display: inline-block;
   width: 1rem;
   height: 1rem;
@@ -160,7 +160,7 @@
   }
 }
 
-.helpText {
+.license-verification-help-text {
   @include form-help;
   margin: 0;
   text-align: center;
@@ -172,37 +172,37 @@
 }
 
 // Focus improvements for accessibility
-.input:focus-visible,
-.select:focus-visible {
+.license-verification-input:focus-visible,
+.license-verification-select:focus-visible {
   outline: 2px solid var(--color-brand-primary);
   outline-offset: 2px;
 }
 
 // High contrast mode support
 @media (prefers-contrast: high) {
-  .input,
-  .select {
+  .license-verification-input,
+  .license-verification-select {
     border-width: 2px;
   }
   
-  .inputError {
+  .license-verification-input-error {
     border-width: 3px;
   }
   
-  .submitButton {
+  .license-verification-submit-button {
     border: 2px solid var(--color-brand-primary);
   }
 }
 
 // Reduced motion support
 @media (prefers-reduced-motion: reduce) {
-  .spinner {
+  .license-verification-spinner {
     animation: none;
   }
   
-  .input,
-  .select,
-  .submitButton {
+  .license-verification-input,
+  .license-verification-select,
+  .license-verification-submit-button {
     transition: none;
   }
 }
