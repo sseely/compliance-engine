@@ -24,7 +24,47 @@ Docker handles this automatically in containers.
 
 ## Architecture Notes
 
-The high-level architecture and technology decisions for this compliance engine are still being determined. Key architectural decisions should be documented here as they are made to help future contributors understand the system design.
+### Technology Stack Preferences
+
+**TypeScript First**: Use TypeScript for all JavaScript/Node.js code unless there's a compelling reason not to. This includes:
+- Frontend applications (Next.js, React components)
+- Node.js services and utilities
+- Infrastructure as Code (AWS CDK)
+- Build scripts and tooling
+
+**Benefits for Compliance Systems**:
+- Type safety reduces runtime errors in critical compliance logic
+- Better developer experience with IntelliSense and refactoring
+- Self-documenting code through type annotations
+- Easier maintenance and debugging
+- Industry standard for enterprise applications
+
+### Backend Languages
+- **Python**: FastAPI for main compliance APIs (excellent LLM ecosystem)
+- **TypeScript**: Infrastructure, frontend, and Node.js utilities
+
+### Infrastructure as Code (IaC) Requirement
+
+**No Manual Configuration**: All infrastructure must be defined in code using AWS CDK (TypeScript). This includes:
+- VPC, subnets, security groups
+- ECS clusters, services, and task definitions
+- RDS databases and parameter groups
+- ALB, CloudFront distributions
+- IAM roles and policies
+- CloudWatch alarms and dashboards
+- S3 buckets and policies
+
+**Benefits for Compliance**:
+- Repeatable deployments across environments
+- Version-controlled infrastructure changes
+- Audit trail of all infrastructure modifications
+- Disaster recovery through code recreation
+- Security policy enforcement through code review
+- No configuration drift between environments
+
+**Deployment Pattern**: GitOps with infrastructure changes deployed via CI/CD pipeline, never manually through AWS console.
+
+The high-level architecture and technology decisions for this compliance engine are documented in the `product-planning/` folder. Key architectural decisions should be documented here as they are made to help future contributors understand the system design.
 
 ## Planning and Documentation
 

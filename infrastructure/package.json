@@ -1,0 +1,56 @@
+{
+  "name": "compliance-engine-infrastructure",
+  "version": "1.0.0",
+  "description": "AWS CDK infrastructure for Compliance Engine",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "synth:dev": "cdk synth --context environment=dev",
+    "synth:qa": "cdk synth --context environment=qa", 
+    "synth:prod": "cdk synth --context environment=production",
+    "deploy:dev": "cdk deploy --all --context environment=dev --require-approval never",
+    "deploy:qa": "cdk deploy --all --context environment=qa --require-approval never",
+    "deploy:prod": "cdk deploy --all --context environment=production",
+    "destroy:dev": "cdk destroy --all --context environment=dev --force",
+    "destroy:qa": "cdk destroy --all --context environment=qa --force",
+    "diff:dev": "cdk diff --context environment=dev",
+    "diff:qa": "cdk diff --context environment=qa",
+    "diff:prod": "cdk diff --context environment=production",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "~5.2.2"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.100.0",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.ts",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
