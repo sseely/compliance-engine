@@ -1,0 +1,293 @@
+@use 'variables' as *;
+
+// Button Mixins
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  padding: $spacing-3 $spacing-6;
+  border: 1px solid transparent;
+  border-radius: $border-radius-md;
+  font-family: $font-family-sans;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+  
+  &:focus {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background-color: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background-color: darken($brand-primary, 8%);
+    border-color: darken($brand-primary, 8%);
+  }
+  
+  &:active:not(:disabled) {
+    background-color: darken($brand-primary, 12%);
+    border-color: darken($brand-primary, 12%);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+  
+  &:hover:not(:disabled) {
+    background-color: var(--color-surface);
+    border-color: var(--color-brand-primary);
+  }
+  
+  &:active:not(:disabled) {
+    background-color: var(--color-brand-tertiary);
+  }
+}
+
+@mixin button-ghost {
+  @include button-base;
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-brand-primary);
+  
+  &:hover:not(:disabled) {
+    background-color: var(--color-surface);
+  }
+  
+  &:active:not(:disabled) {
+    background-color: var(--color-brand-tertiary);
+  }
+}
+
+// Form Control Mixins
+@mixin form-control {
+  display: block;
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  border: 1px solid var(--color-border);
+  border-radius: $border-radius-md;
+  background-color: var(--color-background);
+  font-family: $font-family-sans;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  color: var(--color-text-primary);
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+  
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-brand-primary);
+    box-shadow: 0 0 0 3px rgba($brand-primary, 0.1);
+  }
+  
+  &:disabled {
+    background-color: var(--color-surface);
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &.error {
+    border-color: var(--color-error);
+    
+    &:focus {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 3px rgba($status-error, 0.1);
+    }
+  }
+}
+
+@mixin form-label {
+  display: block;
+  margin-bottom: $spacing-2;
+  font-family: $font-family-sans;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-primary);
+  line-height: $line-height-tight;
+}
+
+@mixin form-error {
+  margin-top: $spacing-1;
+  font-family: $font-family-sans;
+  font-size: $font-size-xs;
+  color: var(--color-error);
+  line-height: $line-height-tight;
+}
+
+@mixin form-help {
+  margin-top: $spacing-1;
+  font-family: $font-family-sans;
+  font-size: $font-size-xs;
+  color: var(--color-text-muted);
+  line-height: $line-height-tight;
+}
+
+// Status Badge Mixins
+@mixin badge-base {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $border-radius-full;
+  font-family: $font-family-sans;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@mixin badge-success {
+  @include badge-base;
+  background-color: rgba($status-success, 0.1);
+  color: darken($status-success, 20%);
+  border: 1px solid rgba($status-success, 0.2);
+}
+
+@mixin badge-warning {
+  @include badge-base;
+  background-color: rgba($status-warning, 0.1);
+  color: darken($status-warning, 20%);
+  border: 1px solid rgba($status-warning, 0.2);
+}
+
+@mixin badge-error {
+  @include badge-base;
+  background-color: rgba($status-error, 0.1);
+  color: darken($status-error, 20%);
+  border: 1px solid rgba($status-error, 0.2);
+}
+
+@mixin badge-info {
+  @include badge-base;
+  background-color: rgba($status-info, 0.1);
+  color: darken($status-info, 20%);
+  border: 1px solid rgba($status-info, 0.2);
+}
+
+@mixin badge-neutral {
+  @include badge-base;
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+// Card Mixin
+@mixin card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+@mixin card-header {
+  padding: $spacing-6;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+@mixin card-body {
+  padding: $spacing-6;
+}
+
+@mixin card-footer {
+  padding: $spacing-6;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+// Responsive Mixins
+@mixin respond-above($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin respond-below($breakpoint) {
+  @media (max-width: #{$breakpoint - 1px}) {
+    @content;
+  }
+}
+
+@mixin respond-between($min-breakpoint, $max-breakpoint) {
+  @media (min-width: $min-breakpoint) and (max-width: #{$max-breakpoint - 1px}) {
+    @content;
+  }
+}
+
+// Mobile-first responsive mixins
+@mixin mobile-first {
+  // Default styles for mobile
+  @content;
+}
+
+@mixin tablet-up {
+  @include respond-above($breakpoint-md) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @include respond-above($breakpoint-lg) {
+    @content;
+  }
+}
+
+@mixin large-desktop-up {
+  @include respond-above($breakpoint-xl) {
+    @content;
+  }
+}
+
+// Loading State Mixin
+@mixin loading-skeleton {
+  background: linear-gradient(90deg, 
+    var(--color-surface) 25%, 
+    rgba($neutral-200, 0.5) 50%, 
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Focus Ring Mixin for Accessibility
+@mixin focus-ring {
+  &:focus {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+  }
+  
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+}

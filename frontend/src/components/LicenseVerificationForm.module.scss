@@ -1,0 +1,208 @@
+@use '../styles/variables' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: $spacing-4;
+  
+  @include tablet-up {
+    padding: $spacing-8;
+  }
+}
+
+.card {
+  @include card;
+  margin-bottom: $spacing-8;
+}
+
+.header {
+  @include card-header;
+  text-align: center;
+  
+  @include tablet-up {
+    text-align: left;
+  }
+}
+
+.title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  margin-bottom: $spacing-2;
+  
+  @include tablet-up {
+    font-size: $font-size-3xl;
+  }
+}
+
+.subtitle {
+  font-size: $font-size-base;
+  color: var(--color-text-secondary);
+  margin-bottom: 0;
+  
+  @include tablet-up {
+    font-size: $font-size-lg;
+  }
+}
+
+.form {
+  @include card-body;
+}
+
+.grid {
+  display: grid;
+  gap: $spacing-6;
+  margin-bottom: $spacing-8;
+  
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-6 $spacing-8;
+  }
+  
+  @include desktop-up {
+    gap: $spacing-8;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  @include form-label;
+}
+
+.input,
+.select {
+  @include form-control;
+  
+  &:hover:not(:disabled) {
+    border-color: lighten($brand-primary, 20%);
+  }
+}
+
+.select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right $spacing-3 center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  
+  &:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%230d9488' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  }
+}
+
+.inputError {
+  border-color: var(--color-error);
+  
+  &:focus {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 3px rgba($status-error, 0.1);
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: var(--color-error);
+  }
+}
+
+.error {
+  @include form-error;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-3;
+  
+  @include tablet-up {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+
+.submitButton {
+  @include button-primary;
+  min-width: 200px;
+  position: relative;
+  
+  @include tablet-up {
+    order: 2;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: $spacing-2;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.helpText {
+  @include form-help;
+  margin: 0;
+  text-align: center;
+  
+  @include tablet-up {
+    order: 1;
+    text-align: left;
+  }
+}
+
+// Focus improvements for accessibility
+.input:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .input,
+  .select {
+    border-width: 2px;
+  }
+  
+  .inputError {
+    border-width: 3px;
+  }
+  
+  .submitButton {
+    border: 2px solid var(--color-brand-primary);
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+  
+  .input,
+  .select,
+  .submitButton {
+    transition: none;
+  }
+}

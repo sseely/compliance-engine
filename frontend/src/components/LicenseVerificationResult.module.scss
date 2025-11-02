@@ -1,0 +1,386 @@
+@use '../styles/variables' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: $spacing-4;
+  
+  @include tablet-up {
+    padding: $spacing-8;
+  }
+}
+
+.card {
+  @include card;
+}
+
+.header {
+  @include card-header;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  
+  @include tablet-up {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.statusSection {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-4;
+}
+
+.verifiedIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--color-success);
+  color: white;
+  flex-shrink: 0;
+}
+
+.unverifiedIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--color-error);
+  color: white;
+  flex-shrink: 0;
+}
+
+.statusTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  margin-bottom: $spacing-3;
+  
+  @include tablet-up {
+    font-size: $font-size-2xl;
+  }
+}
+
+.confidence {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.confidenceLabel {
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+  font-weight: $font-weight-medium;
+}
+
+.confidenceValue {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.confidenceBar {
+  width: 200px;
+  height: 6px;
+  background-color: var(--color-border);
+  border-radius: $border-radius-full;
+  overflow: hidden;
+}
+
+.confidenceProgress {
+  height: 100%;
+  transition: width $transition-normal;
+  border-radius: $border-radius-full;
+}
+
+.newSearchButton {
+  @include button-secondary;
+  white-space: nowrap;
+  
+  @include tablet-up {
+    align-self: flex-start;
+  }
+}
+
+.section {
+  @include card-body;
+  border-top: 1px solid var(--color-border);
+  
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  margin-bottom: $spacing-4;
+}
+
+.subsectionTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  margin-bottom: $spacing-3;
+  margin-top: $spacing-6;
+}
+
+.infoGrid {
+  display: grid;
+  gap: $spacing-4;
+  
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-4 $spacing-6;
+  }
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  
+  @include tablet-up {
+    flex-direction: row;
+    align-items: baseline;
+    gap: $spacing-3;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: var(--color-text-primary);
+  font-weight: $font-weight-medium;
+}
+
+.statusBadge {
+  @include badge-base;
+  align-self: flex-start;
+}
+
+.statusSuccess {
+  @include badge-success;
+}
+
+.statusWarning {
+  @include badge-warning;
+}
+
+.statusError {
+  @include badge-error;
+}
+
+.statusNeutral {
+  @include badge-neutral;
+}
+
+.specialtiesSection {
+  margin-top: $spacing-6;
+}
+
+.specialtyList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.specialtyTag {
+  @include badge-info;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.disciplinarySection {
+  margin-top: $spacing-6;
+}
+
+.disciplinaryList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+}
+
+.disciplinaryItem {
+  padding: $spacing-4;
+  border: 1px solid var(--color-border);
+  border-radius: $border-radius-md;
+  background-color: var(--color-surface);
+}
+
+.disciplinaryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-3;
+  margin-bottom: $spacing-2;
+}
+
+.disciplinaryType {
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+}
+
+.disciplinaryDate {
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+}
+
+.disciplinaryDescription {
+  font-size: $font-size-sm;
+  color: var(--color-text-primary);
+  line-height: $line-height-relaxed;
+  margin: 0;
+}
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-3;
+  padding: $spacing-4;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  
+  svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.alertWarning {
+  background-color: rgba($status-warning, 0.1);
+  border: 1px solid rgba($status-warning, 0.2);
+  color: darken($status-warning, 20%);
+}
+
+.alertError {
+  background-color: rgba($status-error, 0.1);
+  border: 1px solid rgba($status-error, 0.2);
+  color: darken($status-error, 20%);
+}
+
+.footer {
+  @include card-footer;
+}
+
+.metadata {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  
+  @include tablet-up {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.lastUpdated {
+  font-size: $font-size-sm;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.sources {
+  cursor: pointer;
+  
+  &[open] .sourcesToggle::after {
+    transform: rotate(180deg);
+  }
+}
+
+.sourcesToggle {
+  font-size: $font-size-sm;
+  color: var(--color-brand-primary);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  user-select: none;
+  
+  &::-webkit-details-marker {
+    display: none;
+  }
+  
+  &::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid currentColor;
+    transition: transform $transition-fast;
+  }
+  
+  &:hover {
+    color: darken($brand-primary, 8%);
+  }
+}
+
+.sourcesList {
+  margin-top: $spacing-3;
+  padding-left: $spacing-6;
+  border-left: 2px solid var(--color-border);
+}
+
+.sourceItem {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  margin-bottom: $spacing-1;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  .confidenceProgress {
+    transition: none;
+  }
+  
+  .sourcesToggle::after {
+    transition: none;
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .verifiedIcon,
+  .unverifiedIcon {
+    border: 2px solid var(--color-text-primary);
+  }
+  
+  .statusBadge,
+  .specialtyTag,
+  .alert {
+    border-width: 2px;
+  }
+  
+  .disciplinaryItem {
+    border-width: 2px;
+  }
+}
