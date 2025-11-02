@@ -28,6 +28,7 @@ import asyncpg
 
 from ..core.database import get_db_connection
 from ..core.config import settings
+from ..core.platform_auth import require_platform_admin, PlatformAdmin
 
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -120,9 +121,8 @@ async def track_language_request(
 
 @router.get("/language-requests/summary")
 async def get_language_request_summary(
+    current_admin: PlatformAdmin = require_platform_admin,
     db_pool = Depends(get_db_connection)
-    # TODO: Add platform admin authentication dependency here
-    # current_user = Depends(require_platform_admin)
 ):
     """
     Get summary of language support requests.
