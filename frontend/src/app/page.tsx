@@ -4,8 +4,47 @@ import LicenseVerificationForm from '@/components/LicenseVerificationForm';
 import LicenseVerificationResult from '@/components/LicenseVerificationResult';
 import { useState } from 'react';
 
+interface FormData {
+  licenseNumber: string;
+  licenseType: string;
+  state: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface LicenseInfo {
+  licenseNumber: string;
+  licenseType: string;
+  state: string;
+  firstName: string;
+  lastName: string;
+  issueDate?: string;
+  expirationDate?: string;
+  status: 'active' | 'expired' | 'suspended' | 'revoked' | 'pending';
+  board?: string;
+  specialties?: string[];
+  disciplinaryActions?: DisciplinaryAction[];
+}
+
+interface DisciplinaryAction {
+  date: string;
+  type: string;
+  description: string;
+  status: 'active' | 'resolved';
+}
+
+interface VerificationResult {
+  verified: boolean;
+  confidence: number;
+  licenseInfo?: LicenseInfo;
+  lastUpdated: string;
+  sources?: string[];
+  warnings?: string[];
+  errors?: string[];
+}
+
 // Mock API function for development
-async function mockVerifyLicense(data: any) {
+async function mockVerifyLicense(data: FormData): Promise<VerificationResult> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
@@ -52,10 +91,10 @@ async function mockVerifyLicense(data: any) {
 }
 
 export default function HomePage() {
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<VerificationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: FormData) => {
     setIsLoading(true);
     try {
       const verificationResult = await mockVerifyLicense(formData);
