@@ -28,6 +28,7 @@ from core.security import SecurityManager
 from core.i18n import get_babel_middleware
 from api.health import router as health_router
 from api.i18n import router as i18n_router
+from api.analytics import router as analytics_router
 from api.v1.license import router as license_router
 from api.v1.permits import router as permits_router
 from api.v1.fleet import router as fleet_router
@@ -164,6 +165,7 @@ async def database_security_middleware(request: Request, call_next):
 # Include routers
 app.include_router(health_router, tags=["Health"])
 app.include_router(i18n_router, prefix=f"{settings.API_PREFIX}/i18n", tags=["Internationalization"])
+app.include_router(analytics_router, prefix=f"{settings.API_PREFIX}/analytics", tags=["Analytics"])
 
 # API v1 routes
 app.include_router(

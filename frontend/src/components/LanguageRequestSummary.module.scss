@@ -1,0 +1,196 @@
+@use '../styles/variables' as *;
+@use '../styles/mixins' as *;
+
+.container {
+  @include card;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  @include card-header;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  
+  @include tablet-up {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+  
+  p {
+    color: var(--color-text-secondary);
+    margin: 0;
+    flex: 1;
+  }
+}
+
+.refreshButton {
+  @include button-secondary;
+  white-space: nowrap;
+}
+
+.loading {
+  @include card-body;
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: $spacing-8;
+}
+
+.error {
+  @include card-body;
+  text-align: center;
+  padding: $spacing-8;
+  
+  p {
+    color: var(--color-error);
+    margin-bottom: $spacing-4;
+  }
+}
+
+.retryButton {
+  @include button-primary;
+}
+
+.empty {
+  @include card-body;
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: $spacing-8;
+  font-style: italic;
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1.5fr;
+  gap: $spacing-4;
+  padding: $spacing-4 $spacing-6;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+  
+  @include respond-below($breakpoint-md) {
+    grid-template-columns: 1fr 1fr 1fr;
+    
+    > div:nth-child(4),
+    > div:nth-child(5),
+    > div:nth-child(6) {
+      display: none;
+    }
+  }
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1.5fr;
+  gap: $spacing-4;
+  padding: $spacing-4 $spacing-6;
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+  transition: background-color $transition-fast;
+  
+  &:hover {
+    background-color: var(--color-surface);
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  @include respond-below($breakpoint-md) {
+    grid-template-columns: 1fr 1fr 1fr;
+    
+    > div:nth-child(4),
+    > div:nth-child(5),
+    > div:nth-child(6) {
+      display: none;
+    }
+  }
+}
+
+.languageName {
+  font-weight: $font-weight-medium;
+  color: var(--color-text-primary);
+}
+
+.languageCode {
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.requestCount {
+  font-weight: $font-weight-semibold;
+  color: var(--color-brand-primary);
+}
+
+.uniqueIps,
+.uniqueSessions {
+  color: var(--color-text-secondary);
+  font-size: $font-size-sm;
+}
+
+.lastRequest {
+  color: var(--color-text-secondary);
+  font-size: $font-size-sm;
+}
+
+.footer {
+  @include card-footer;
+  
+  p {
+    font-size: $font-size-sm;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: $line-height-relaxed;
+  }
+}
+
+// Responsive improvements
+@include respond-below($breakpoint-md) {
+  .header {
+    text-align: center;
+    
+    h2 {
+      font-size: $font-size-lg;
+    }
+  }
+  
+  .table {
+    font-size: $font-size-sm;
+  }
+  
+  .tableHeader,
+  .tableRow {
+    padding: $spacing-3 $spacing-4;
+    gap: $spacing-2;
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .tableRow {
+    border-bottom-width: 2px;
+  }
+  
+  .tableHeader {
+    border-bottom-width: 2px;
+  }
+}
