@@ -3,6 +3,7 @@
 import LicenseVerificationForm from '@/components/LicenseVerificationForm';
 import LicenseVerificationResult from '@/components/LicenseVerificationResult';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { FormData, VerificationResult } from '@/types';
 import { LICENSE_STATUSES } from '@/constants';
 
@@ -56,6 +57,8 @@ async function mockVerifyLicense(data: FormData): Promise<VerificationResult> {
 export default function HomePage() {
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const t = useTranslations('home');
+  const errorT = useTranslations('errors');
 
   const handleFormSubmit = async (formData: FormData) => {
     setIsLoading(true);
@@ -68,7 +71,7 @@ export default function HomePage() {
         verified: false,
         confidence: 0,
         lastUpdated: new Date().toISOString(),
-        errors: ['Service temporarily unavailable. Please try again later.']
+        errors: [errorT('serviceUnavailable')]
       });
     } finally {
       setIsLoading(false);
@@ -83,9 +86,9 @@ export default function HomePage() {
     <main>
       <div className="container">
         <header style={{ textAlign: 'center', padding: '2rem 0' }}>
-          <h1>Professional License Verification</h1>
+          <h1>{t('title')}</h1>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.125rem' }}>
-            Verify professional credentials quickly and securely
+            {t('subtitle')}
           </p>
         </header>
 

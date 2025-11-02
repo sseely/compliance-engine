@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import styles from './LicenseVerificationForm.module.scss';
 import type { FormData, FormErrors, LicenseVerificationFormProps } from '@/types';
-import { LICENSE_TYPES, US_STATES } from '@/constants';
+import { useLicenseTypeOptions, useStateOptions } from '@/utils/i18n';
+import { useTranslations } from 'next-intl';
 
 export default function LicenseVerificationForm({ onSubmit, isLoading = false }: LicenseVerificationFormProps) {
   const [formData, setFormData] = useState<FormData>({
@@ -15,34 +16,40 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  
+  // Get translated options and text
+  const licenseTypeOptions = useLicenseTypeOptions();
+  const stateOptions = useStateOptions();
+  const t = useTranslations('verification.form');
+  const validationT = useTranslations('verification.validation');
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!formData.licenseNumber.trim()) {
-      newErrors.licenseNumber = 'License number is required';
+      newErrors.licenseNumber = validationT('licenseNumberRequired');
     } else if (formData.licenseNumber.length < 3) {
-      newErrors.licenseNumber = 'License number must be at least 3 characters';
+      newErrors.licenseNumber = validationT('licenseNumberMinLength');
     }
 
     if (!formData.licenseType) {
-      newErrors.licenseType = 'License type is required';
+      newErrors.licenseType = validationT('licenseTypeRequired');
     }
 
     if (!formData.state) {
-      newErrors.state = 'State is required';
+      newErrors.state = validationT('stateRequired');
     }
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+      newErrors.firstName = validationT('firstNameRequired');
     } else if (formData.firstName.length < 2) {
-      newErrors.firstName = 'First name must be at least 2 characters';
+      newErrors.firstName = validationT('firstNameMinLength');
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+      newErrors.lastName = validationT('lastNameRequired');
     } else if (formData.lastName.length < 2) {
-      newErrors.lastName = 'Last name must be at least 2 characters';
+      newErrors.lastName = validationT('lastNameMinLength');
     }
 
     setErrors(newErrors);
@@ -76,9 +83,9 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <h2 className={styles.title}>License Verification</h2>
+          <h2 className={styles.title}>{t('title')}</h2>
           <p className={styles.subtitle}>
-            Enter license information to verify professional credentials
+            {t('subtitle')}
           </p>
         </div>
 
@@ -86,7 +93,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
           <div className={styles.grid}>
             <div className={styles.field}>
               <label htmlFor="licenseNumber" className={styles.label}>
-                License Number *
+                {t('licenseNumber')} *
               </label>
               <input
                 id="licenseNumber"
@@ -94,7 +101,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
                 value={formData.licenseNumber}
                 onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
                 className={`${styles.input} ${errors.licenseNumber ? styles.inputError : ''}`}
-                placeholder="Enter license number"
+                placeholder={t('licenseNumberPlaceholder')}
                 disabled={isLoading}
                 aria-describedby={errors.licenseNumber ? 'licenseNumber-error' : undefined}
               />
@@ -107,7 +114,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
 
             <div className={styles.field}>
               <label htmlFor="licenseType" className={styles.label}>
-                License Type *
+                {t('licenseType')} *
               </label>
               <select
                 id="licenseType"
@@ -117,7 +124,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
                 disabled={isLoading}
                 aria-describedby={errors.licenseType ? 'licenseType-error' : undefined}
               >
-                {LICENSE_TYPES.map(option => (
+                {licenseTypeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -132,7 +139,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
 
             <div className={styles.field}>
               <label htmlFor="state" className={styles.label}>
-                State *
+                {t('state')} *
               </label>
               <select
                 id="state"
@@ -142,7 +149,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
                 disabled={isLoading}
                 aria-describedby={errors.state ? 'state-error' : undefined}
               >
-                {US_STATES.map(option => (
+                {stateOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -157,7 +164,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
 
             <div className={styles.field}>
               <label htmlFor="firstName" className={styles.label}>
-                First Name *
+                {t('firstName')} *
               </label>
               <input
                 id="firstName"
@@ -165,7 +172,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                 className={`${styles.input} ${errors.firstName ? styles.inputError : ''}`}
-                placeholder="Enter first name"
+                placeholder={t('firstNamePlaceholder')}
                 disabled={isLoading}
                 aria-describedby={errors.firstName ? 'firstName-error' : undefined}
               />
@@ -178,7 +185,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
 
             <div className={styles.field}>
               <label htmlFor="lastName" className={styles.label}>
-                Last Name *
+                {t('lastName')} *
               </label>
               <input
                 id="lastName"
@@ -186,7 +193,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                 className={`${styles.input} ${errors.lastName ? styles.inputError : ''}`}
-                placeholder="Enter last name"
+                placeholder={t('lastNamePlaceholder')}
                 disabled={isLoading}
                 aria-describedby={errors.lastName ? 'lastName-error' : undefined}
               />
@@ -208,14 +215,14 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
               {isLoading ? (
                 <>
                   <span className={styles.spinner} aria-hidden="true"></span>
-                  Verifying License...
+                  {t('verifyingButton')}
                 </>
               ) : (
-                'Verify License'
+                t('verifyButton')
               )}
             </button>
             <p id="submit-help" className={styles.helpText}>
-              All fields marked with * are required
+              {t('helpText')}
             </p>
           </div>
         </form>
