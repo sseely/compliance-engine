@@ -1,0 +1,59 @@
+# English translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-11-01 20:33-0500\n"
+"PO-Revision-Date: 2025-11-01 20:31-0500\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: src/api/i18n.py:96 src/main.py:200
+msgid "Compliance Engine API"
+msgstr "Compliance Engine API"
+
+#: src/main.py:204
+msgid "operational"
+msgstr "operational"
+
+#: src/api/health.py:60 src/api/health.py:74 src/api/health.py:75
+#: src/api/health.py:98 src/api/health.py:133 src/api/health.py:141
+#: src/api/i18n.py:94
+msgid "healthy"
+msgstr "healthy"
+
+#: src/api/health.py:69
+msgid "status"
+msgstr "status"
+
+#: src/api/health.py:72 src/api/health.py:76 src/api/health.py:126
+#: src/api/health.py:136
+msgid "unhealthy"
+msgstr "unhealthy"
+
+#: src/api/i18n.py:60
+msgid "Current locale is set to"
+msgstr "Current locale is set to"
+
+#: src/api/i18n.py:77
+msgid "Locale is supported"
+msgstr "Locale is supported"
+
+#: src/api/i18n.py:83
+msgid "Locale is not supported"
+msgstr "Locale is not supported"
+
+#: src/api/i18n.py:95
+msgid "System is operating normally"
+msgstr "System is operating normally"
+

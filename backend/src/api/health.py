@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from core.database import database_manager
 from core.config import settings
 from core.exceptions import DatabaseError
+from fastapi_babel import _
 
 logger = structlog.get_logger(__name__)
 
@@ -56,7 +57,7 @@ async def health_check():
     
     # Perform basic checks
     checks = {
-        "api": "healthy",
+        "api": _("healthy"),
         "timestamp": timestamp,
         "environment": settings.ENVIRONMENT,
         "version": settings.VERSION
@@ -65,14 +66,14 @@ async def health_check():
     # Quick database connectivity check
     try:
         db_health = await database_manager.health_check()
-        checks["database"] = db_health["status"]
+        checks["database"] = _(db_health["status"])
     except Exception as e:
         logger.error("health_check_database_failed", error=str(e))
-        checks["database"] = "unhealthy"
+        checks["database"] = _("unhealthy")
     
-    overall_status = "healthy" if all(
-        check == "healthy" for check in checks.values() if isinstance(check, str)
-    ) else "unhealthy"
+    overall_status = _("healthy") if all(
+        check == _("healthy") for check in checks.values() if isinstance(check, str)
+    ) else _("unhealthy")
     
     return HealthResponse(
         status=overall_status,
@@ -94,7 +95,7 @@ async def liveness_probe():
     uptime = (current_time - _app_start_time).total_seconds()
     
     return LivenessResponse(
-        status="healthy",
+        status=_("healthy"),
         timestamp=current_time.isoformat(),
         uptime_seconds=uptime
     )
@@ -122,22 +123,22 @@ async def readiness_probe(response: Response):
             overall_healthy = False
     except Exception as e:
         logger.error("readiness_database_check_failed", error=str(e))
-        checks["database"] = {"status": "unhealthy", "error": str(e)}
+        checks["database"] = {"status": _("unhealthy"), "error": str(e)}
         overall_healthy = False
     
     # Check stored procedure accessibility
     try:
         # Test a simple stored procedure call
         await database_manager.execute_procedure("health_check_database", fetch_mode="one")
-        checks["stored_procedures"] = {"status": "healthy"}
+        checks["stored_procedures"] = {"status": _("healthy")}
     except Exception as e:
         logger.error("readiness_stored_procedures_failed", error=str(e))
-        checks["stored_procedures"] = {"status": "unhealthy", "error": str(e)}
+        checks["stored_procedures"] = {"status": _("unhealthy"), "error": str(e)}
         overall_healthy = False
     
     # Check configuration
     checks["configuration"] = {
-        "status": "healthy",
+        "status": _("healthy"),
         "environment": settings.ENVIRONMENT,
         "database_pool_size": settings.DATABASE_POOL_SIZE
     }

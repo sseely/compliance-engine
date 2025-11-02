@@ -36,3 +36,6 @@ slowapi==0.1.9
 
 # Circuit Breaker
 circuitbreaker==1.4.0
+
+# Internationalization
+fastapi-babel==1.0.0

@@ -25,7 +25,9 @@ from core.logging_config import setup_logging
 from core.database import DatabaseManager
 from core.exceptions import ComplianceEngineException, compliance_exception_handler
 from core.security import SecurityManager
+from core.i18n import get_babel_middleware
 from api.health import router as health_router
+from api.i18n import router as i18n_router
 from api.v1.license import router as license_router
 from api.v1.permits import router as permits_router
 from api.v1.fleet import router as fleet_router
@@ -85,6 +87,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Add middleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Internationalization middleware
+app.add_middleware(get_babel_middleware())
 
 # CORS middleware (restrictive by default)
 app.add_middleware(
@@ -158,6 +163,7 @@ async def database_security_middleware(request: Request, call_next):
 
 # Include routers
 app.include_router(health_router, tags=["Health"])
+app.include_router(i18n_router, prefix=f"{settings.API_PREFIX}/i18n", tags=["Internationalization"])
 
 # API v1 routes
 app.include_router(
@@ -189,12 +195,13 @@ app.mount("/metrics", metrics_app)
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
+    from fastapi_babel import _
     return {
-        "name": "Compliance Engine API",
+        "name": _("Compliance Engine API"),
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
         "documentation": f"{settings.API_PREFIX}/docs" if settings.ENVIRONMENT != "production" else None,
-        "status": "operational"
+        "status": _("operational")
     }
 
 

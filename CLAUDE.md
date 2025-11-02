@@ -8,7 +8,26 @@ This is a compliance engine project that is currently in its initial development
 
 ## Development Workflow
 
-As this is a new project, the development commands and build process are yet to be defined. When adding build tools, testing frameworks, or development scripts, update this file with the relevant commands.
+### Build and Test Commands
+
+**Translation Management**:
+```bash
+# Extract translatable strings from code
+cd backend && source .venv/bin/activate
+pybabel extract -F babel.cfg -o messages.pot src/
+
+# Update existing translation files
+pybabel update -i messages.pot -d locales
+
+# Add new language (example: French)
+pybabel init -i messages.pot -d locales -l fr
+
+# Compile translations for production
+pybabel compile -d locales
+
+# Test translations
+python simple_i18n_test.py
+```
 
 ### Python Environment Management
 

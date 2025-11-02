@@ -22,6 +22,7 @@ from core.exceptions import (
 )
 from core.config import settings
 from core.logging_config import audit_logger
+from fastapi_babel import _
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
