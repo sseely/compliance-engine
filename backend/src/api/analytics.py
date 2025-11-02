@@ -1,6 +1,19 @@
 """
 Analytics API endpoints for tracking user behavior and preferences.
 Separate from core business logic for license verification.
+
+ADMIN ACCESS LEVELS:
+- Platform Admin: Compliance Engine employees who manage the entire platform
+  * Can see global analytics across all customers
+  * Can prioritize features and translations for the platform
+  * Access to language request summaries, usage metrics, etc.
+
+- Customer Admin: Admin users within a specific customer organization
+  * Can only see their organization's data and settings
+  * Cannot see other customers' data or global platform metrics
+  * Access to their org's compliance reports, user management, etc.
+
+This file contains PLATFORM ADMIN endpoints unless otherwise noted.
 """
 
 from datetime import datetime
@@ -108,12 +121,17 @@ async def track_language_request(
 @router.get("/language-requests/summary")
 async def get_language_request_summary(
     db_pool = Depends(get_db_connection)
+    # TODO: Add platform admin authentication dependency here
+    # current_user = Depends(require_platform_admin)
 ):
     """
     Get summary of language support requests.
     
-    Returns aggregated data showing which languages are most requested.
-    Note: This should be protected in production with admin authentication.
+    PLATFORM ADMIN ONLY - Returns aggregated data across ALL customers 
+    showing which languages are most requested globally.
+    
+    This data is used to prioritize translation work for the entire platform.
+    Customer admins should NOT have access to this cross-customer data.
     """
     try:
         async with db_pool.acquire() as connection:

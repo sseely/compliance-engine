@@ -100,7 +100,7 @@ export default function LanguageRequestSummary({
     <div className={`${styles.container} ${className || ''}`}>
       <div className={styles.header}>
         <h2>Language Support Requests</h2>
-        <p>Languages that users have requested based on their browser preferences</p>
+        <p>Global platform data: Languages requested by users across all customers</p>
         <button onClick={fetchLanguageData} className={styles.refreshButton}>
           Refresh Data
         </button>
@@ -148,7 +148,8 @@ export default function LanguageRequestSummary({
 
       <div className={styles.footer}>
         <p>
-          <strong>Note:</strong> Each user can only vote once per session for each language.
+          <strong>Platform Admin View:</strong> This shows global language requests across all customers. 
+          Each user can only vote once per session for each language.
           Heavy users may contribute multiple votes across different sessions.
         </p>
       </div>
