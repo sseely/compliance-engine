@@ -3,45 +3,8 @@
 import LicenseVerificationForm from '@/components/LicenseVerificationForm';
 import LicenseVerificationResult from '@/components/LicenseVerificationResult';
 import { useState } from 'react';
-
-interface FormData {
-  licenseNumber: string;
-  licenseType: string;
-  state: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface LicenseInfo {
-  licenseNumber: string;
-  licenseType: string;
-  state: string;
-  firstName: string;
-  lastName: string;
-  issueDate?: string;
-  expirationDate?: string;
-  status: 'active' | 'expired' | 'suspended' | 'revoked' | 'pending';
-  board?: string;
-  specialties?: string[];
-  disciplinaryActions?: DisciplinaryAction[];
-}
-
-interface DisciplinaryAction {
-  date: string;
-  type: string;
-  description: string;
-  status: 'active' | 'resolved';
-}
-
-interface VerificationResult {
-  verified: boolean;
-  confidence: number;
-  licenseInfo?: LicenseInfo;
-  lastUpdated: string;
-  sources?: string[];
-  warnings?: string[];
-  errors?: string[];
-}
+import type { FormData, VerificationResult } from '@/types';
+import { LICENSE_STATUSES } from '@/constants';
 
 // Mock API function for development
 async function mockVerifyLicense(data: FormData): Promise<VerificationResult> {
@@ -63,7 +26,7 @@ async function mockVerifyLicense(data: FormData): Promise<VerificationResult> {
         lastName: data.lastName,
         issueDate: '2020-01-15',
         expirationDate: '2025-01-15',
-        status: 'active',
+        status: LICENSE_STATUSES.ACTIVE,
         board: 'State Medical Board',
         specialties: ['Internal Medicine', 'Cardiology'],
       },

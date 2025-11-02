@@ -1,75 +1,8 @@
 'use client';
 
 import styles from './LicenseVerificationResult.module.scss';
-
-interface LicenseInfo {
-  licenseNumber: string;
-  licenseType: string;
-  state: string;
-  firstName: string;
-  lastName: string;
-  issueDate?: string;
-  expirationDate?: string;
-  status: 'active' | 'expired' | 'suspended' | 'revoked' | 'pending';
-  board?: string;
-  specialties?: string[];
-  disciplinaryActions?: DisciplinaryAction[];
-}
-
-interface DisciplinaryAction {
-  date: string;
-  type: string;
-  description: string;
-  status: 'active' | 'resolved';
-}
-
-interface VerificationResult {
-  verified: boolean;
-  confidence: number; // 0-100
-  licenseInfo?: LicenseInfo;
-  lastUpdated: string;
-  sources?: string[];
-  warnings?: string[];
-  errors?: string[];
-}
-
-interface LicenseVerificationResultProps {
-  result: VerificationResult;
-  onReset: () => void;
-}
-
-const getStatusBadgeClass = (status: string): string => {
-  switch (status) {
-    case 'active':
-      return styles.statusSuccess;
-    case 'pending':
-      return styles.statusWarning;
-    case 'expired':
-    case 'suspended':
-    case 'revoked':
-      return styles.statusError;
-    default:
-      return styles.statusNeutral;
-  }
-};
-
-const getConfidenceColor = (confidence: number): string => {
-  if (confidence >= 90) return 'var(--color-success)';
-  if (confidence >= 70) return 'var(--color-warning)';
-  return 'var(--color-error)';
-};
-
-const formatDate = (dateString: string): string => {
-  try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  } catch {
-    return dateString;
-  }
-};
+import type { LicenseVerificationResultProps } from '@/types';
+import { getStatusBadgeClass, getConfidenceColor, formatDate, capitalize } from '@/utils';
 
 export default function LicenseVerificationResult({ result, onReset }: LicenseVerificationResultProps) {
   const { verified, confidence, licenseInfo, lastUpdated, sources, warnings, errors } = result;
@@ -155,8 +88,8 @@ export default function LicenseVerificationResult({ result, onReset }: LicenseVe
               
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>Status:</span>
-                <span className={`${styles.statusBadge} ${getStatusBadgeClass(licenseInfo.status)}`}>
-                  {licenseInfo.status.charAt(0).toUpperCase() + licenseInfo.status.slice(1)}
+                <span className={`${styles.statusBadge} ${getStatusBadgeClass(licenseInfo.status, styles)}`}>
+                  {capitalize(licenseInfo.status)}
                 </span>
               </div>
               
@@ -206,8 +139,8 @@ export default function LicenseVerificationResult({ result, onReset }: LicenseVe
                       <div className={styles.disciplinaryHeader}>
                         <span className={styles.disciplinaryType}>{action.type}</span>
                         <span className={styles.disciplinaryDate}>{formatDate(action.date)}</span>
-                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(action.status)}`}>
-                          {action.status}
+                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(action.status, styles)}`}>
+                          {capitalize(action.status)}
                         </span>
                       </div>
                       <p className={styles.disciplinaryDescription}>{action.description}</p>
