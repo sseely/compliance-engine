@@ -15,6 +15,8 @@ function LinkedInOAuthCallbackContent() {
 
   useEffect(() => {
     const handleCallback = async () => {
+      if (!searchParams) return;
+
       const code = searchParams.get('code');
       const error = searchParams.get('error');
       const state = searchParams.get('state');
@@ -144,7 +146,7 @@ function LinkedInOAuthCallbackContent() {
         <p>Processing LinkedIn authentication...</p>
         <p className="text-sm text-gray-500 mt-2">This window will close automatically.</p>
         <p className="text-xs text-gray-400 mt-4">
-          Debug: {searchParams.get('code') ? 'Code received' : 'No code'} | 
+          Debug: {searchParams?.get('code') ? 'Code received' : 'No code'} |
           {' '}Opener: {typeof window !== 'undefined' && window.opener ? 'Yes' : 'No'}
         </p>
       </div>

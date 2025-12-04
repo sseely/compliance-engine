@@ -111,7 +111,7 @@ export default function LicenseVerificationResult({ result, onReset }: LicenseVe
               </div>
               
               <div className="infoItem">
-                <span className={styles.infoLabel}>Status:</span>
+                <span className="infoLabel">Status:</span>
                 <span className={`statusBadge ${getStatusBadgeClass(licenseInfo.status, {})}`}>
                   {capitalize(licenseInfo.status)}
                 </span>

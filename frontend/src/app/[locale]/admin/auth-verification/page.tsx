@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
 import { 
   PlatformAuthProvider, 
   PlatformAdminAuthGuard, 
@@ -26,14 +25,11 @@ import {
   PROVIDER_COLORS,
   VERIFICATION_ENVIRONMENTS,
   type OAuthProviderId,
+  type VerificationEnvironment,
 } from '@/constants/oauth';
 import {
   useCommonStrings,
-  useStatusStrings,
-  useProviderStrings,
-  useStringConstant,
 } from '@/hooks/useStringConstants';
-import { STRING_CONSTANTS } from '@/constants/strings';
 
 interface ProviderConfig {
   id: ProviderId;
@@ -51,16 +47,13 @@ const PROVIDERS: ProviderConfig[] = Object.values(OAUTH_PROVIDERS).map(providerI
 
 function AuthVerificationDashboard() {
   const { admin } = usePlatformAuth();
-  const t = useTranslations('admin.authVerification');
   const common = useCommonStrings();
-  const status = useStatusStrings();
-  const provider = useProviderStrings();
   const [verificationSummary, setVerificationSummary] = useState<OIDCVerificationSummary | null>(null);
   const [deploymentReadiness, setDeploymentReadiness] = useState<DeploymentReadiness | null>(null);
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [configValidation, setConfigValidation] = useState<ConfigValidation | null>(null);
   const [loading, setLoading] = useState(true);
-  const [environment, setEnvironment] = useState<string>(VERIFICATION_ENVIRONMENTS.PRODUCTION);
+  const [environment, setEnvironment] = useState<VerificationEnvironment>(VERIFICATION_ENVIRONMENTS.PRODUCTION);
 
   useEffect(() => {
     loadVerificationStatus();
@@ -206,14 +199,19 @@ function AuthVerificationDashboard() {
                 Authentication Provider Verification
               </h1>
               <p className="text-gray-600">
-                Test OAuth providers to ensure they're properly configured for production deployment.
+                Test OAuth providers to ensure they&apos;re properly configured for production deployment.
                 All providers must be verified within the last 10 days to allow automatic deployment.
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <select
                 value={environment}
-                onChange={(e) => setEnvironment(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === 'production' || value === 'staging' || value === 'development') {
+                    setEnvironment(value);
+                  }
+                }}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
               >
                 <option value="production">Production</option>
@@ -365,7 +363,7 @@ function AuthVerificationDashboard() {
         <div className="mt-8 bg-blue-50 border border-blue-200 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-blue-800 mb-3">🔍 Testing Instructions</h3>
           <ol className="list-decimal list-inside text-sm text-blue-700 space-y-2">
-            <li>Click "Test [Provider] Login" for each OAuth provider</li>
+            <li>Click &quot;Test [Provider] Login&quot; for each OAuth provider</li>
             <li>Complete the authentication flow in the popup/redirect</li>
             <li>Return to this page to see the green checkmark for successful tests</li>
             <li>All providers must show green checkmarks for deployment approval</li>

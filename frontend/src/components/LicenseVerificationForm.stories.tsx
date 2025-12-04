@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { NextIntlClientProvider } from 'next-intl'
 import LicenseVerificationForm from './LicenseVerificationForm'
 import { VALIDATION_RULES } from '@/constants'
 
 // Simple action function to replace @storybook/addon-actions temporarily
-const action = (name: string) => (...args: any[]) => {
+const action = (name: string) => async (...args: any[]) => {
   console.log(`Action: ${name}`, ...args)
 }
 
@@ -82,16 +82,6 @@ const mockUseStateOptions = () => [
   { value: 'wi', label: 'Wisconsin' },
   { value: 'wy', label: 'Wyoming' },
 ]
-
-// Mock the modules
-jest.mock('@/hooks/useAccessibility', () => ({
-  useAriaAnnouncements: mockUseAriaAnnouncements,
-}))
-
-jest.mock('@/utils/i18n', () => ({
-  useLicenseTypeOptions: mockUseLicenseTypeOptions,
-  useStateOptions: mockUseStateOptions,
-}))
 
 const mockMessages = {
   verification: {
