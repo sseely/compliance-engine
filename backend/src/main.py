@@ -25,11 +25,13 @@ from core.logging_config import setup_logging
 from core.database import DatabaseManager
 from core.exceptions import ComplianceEngineException, compliance_exception_handler
 from core.security import SecurityManager
-from core.i18n import get_babel_middleware
+from core.i18n import babel_configs, locale_selector
+from fastapi_babel import BabelMiddleware
 from api.health import router as health_router
 from api.i18n import router as i18n_router
 from api.analytics import router as analytics_router
 from api.platform_admin import router as platform_admin_router
+from api.oidc_verification import router as oidc_verification_router
 from api.v1.license import router as license_router
 from api.v1.permits import router as permits_router
 from api.v1.fleet import router as fleet_router
@@ -61,9 +63,9 @@ async def lifespan(app: FastAPI):
     # Initialize security components
     await security_manager.initialize()
     
-    # Initialize platform admins
-    from core.platform_auth import initialize_platform_admins
-    await initialize_platform_admins(db_manager.pool)
+    # Initialize platform admins - TODO: Fix imports
+    # from core.platform_auth import initialize_platform_admins
+    # await initialize_platform_admins(db_manager.pool)
     
     logger.info("Application startup complete")
     
@@ -95,7 +97,11 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Internationalization middleware
-app.add_middleware(get_babel_middleware())
+app.add_middleware(
+    BabelMiddleware,
+    babel_configs=babel_configs,
+    locale_selector=locale_selector
+)
 
 # CORS middleware (restrictive by default)
 app.add_middleware(
@@ -172,8 +178,9 @@ app.include_router(health_router, tags=["Health"])
 app.include_router(i18n_router, prefix=f"{settings.API_PREFIX}/i18n", tags=["Internationalization"])
 app.include_router(analytics_router, prefix=f"{settings.API_PREFIX}/analytics", tags=["Analytics"])
 app.include_router(platform_admin_router, prefix=f"{settings.API_PREFIX}", tags=["Platform Administration"])
+app.include_router(oidc_verification_router, prefix=f"{settings.API_PREFIX}", tags=["OIDC Verification"])
 
-# API v1 routes
+# API v1 routes - TODO: Fix imports
 app.include_router(
     license_router, 
     prefix=f"{settings.API_PREFIX}/license", 

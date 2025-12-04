@@ -1,11 +1,31 @@
 -- Compliance Engine Database Schema
--- PostgreSQL schema with security-first design
+-- PostgreSQL 18+ schema with security-first design and modern optimizations
 -- All access through stored procedures only
+-- 
+-- PostgreSQL 18 Features Used:
+-- - UUIDv7 for temporally sortable identifiers
+-- - Skip scan indexes for flexible multi-column queries
+-- - Enhanced trigram similarity searches
+-- - Improved SQL function plan caching
 
 -- Extension setup
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+
+-- Use UUIDv7 for time-ordered UUIDs (PostgreSQL 18 feature)
+-- Fallback to uuid_generate_v4() if UUIDv7 is not available
+CREATE OR REPLACE FUNCTION compliance_uuid() RETURNS UUID AS $$
+BEGIN
+    -- Try UUIDv7 first (PostgreSQL 18+)
+    BEGIN
+        RETURN uuidv7();
+    EXCEPTION WHEN undefined_function THEN
+        -- Fallback to v4 for older versions
+        RETURN uuid_generate_v4();
+    END;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Create schemas for organization
 CREATE SCHEMA IF NOT EXISTS audit;
@@ -20,7 +40,7 @@ SET search_path = public, audit, cache;
 
 -- Customers table - manages API access
 CREATE TABLE IF NOT EXISTS customers (
-    customer_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id UUID PRIMARY KEY DEFAULT compliance_uuid(),
     business_name VARCHAR(200) NOT NULL,
     contact_email VARCHAR(255) NOT NULL UNIQUE,
     contact_phone VARCHAR(20),
@@ -37,7 +57,7 @@ CREATE TABLE IF NOT EXISTS customers (
 
 -- API Keys table - secure key management
 CREATE TABLE IF NOT EXISTS api_keys (
-    key_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key_id UUID PRIMARY KEY DEFAULT compliance_uuid(),
     customer_id UUID NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
     key_name VARCHAR(100) NOT NULL,
     key_hash VARCHAR(255) NOT NULL UNIQUE, -- bcrypt hash of the key
@@ -144,7 +164,7 @@ CREATE TABLE IF NOT EXISTS license_verification_requests (
 
 -- User activity audit log
 CREATE TABLE IF NOT EXISTS audit.user_activity_log (
-    log_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    log_id UUID PRIMARY KEY DEFAULT compliance_uuid(),
     user_id VARCHAR(100) NOT NULL, -- Could be customer_id or API key
     action VARCHAR(100) NOT NULL,
     resource VARCHAR(100) NOT NULL,
@@ -231,6 +251,13 @@ CREATE INDEX IF NOT EXISTS idx_license_records_business_name ON license_records 
 CREATE INDEX IF NOT EXISTS idx_license_records_state_type ON license_records(state_code, license_type_id);
 CREATE INDEX IF NOT EXISTS idx_license_records_status ON license_records(status);
 CREATE INDEX IF NOT EXISTS idx_license_records_expiration ON license_records(expiration_date) WHERE expiration_date IS NOT NULL;
+
+-- PostgreSQL 18 skip scan optimization: Multi-column index for flexible queries
+-- Allows queries to efficiently use this index even when early columns are not restricted
+CREATE INDEX IF NOT EXISTS idx_license_records_skip_scan ON license_records(state_code, license_type_id, status, expiration_date, business_name);
+
+-- Optimized index for similarity searches (PostgreSQL 18 performance improvements)
+CREATE INDEX IF NOT EXISTS idx_license_records_similarity ON license_records USING gin(business_name gin_trgm_ops) WHERE status IN ('valid', 'pending');
 
 -- Audit indexes
 CREATE INDEX IF NOT EXISTS idx_user_activity_log_user_id ON audit.user_activity_log(user_id);

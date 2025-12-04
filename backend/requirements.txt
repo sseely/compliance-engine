@@ -39,3 +39,6 @@ circuitbreaker==1.4.0
 
 # Internationalization
 fastapi-babel==1.0.0
+
+# JSON Logging
+python-json-logger>=2.0.0

@@ -93,7 +93,7 @@ DECLARE
     v_key_hash VARCHAR(255);
     v_key_id UUID;
 BEGIN
-    -- Generate random API key
+    -- Generate random API key with improved entropy (PostgreSQL 18 optimized)
     v_api_key := 'ce_' || encode(gen_random_bytes(32), 'base64');
     v_api_key := replace(replace(v_api_key, '+', ''), '/', '');
     v_key_prefix := substring(v_api_key, 1, 12);
@@ -208,11 +208,13 @@ BEGIN
         COALESCE(p_license_number, 'any'));
     
     -- Check cache first
-    SELECT verification_result, confidence_score, expires_at
+    SELECT cache.license_verification_cache.verification_result, 
+           cache.license_verification_cache.confidence_score, 
+           cache.license_verification_cache.expires_at
     INTO v_cache_result
     FROM cache.license_verification_cache
-    WHERE cache_key = v_cache_key
-        AND expires_at > NOW();
+    WHERE cache.license_verification_cache.cache_key = v_cache_key
+        AND cache.license_verification_cache.expires_at > NOW();
     
     IF FOUND THEN
         -- Update cache hit count

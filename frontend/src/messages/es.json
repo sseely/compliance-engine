@@ -157,5 +157,52 @@
     "multipleSimilar": "Se encontraron múltiples números de licencia similares",
     "networkError": "Ocurrió un error de red. Por favor, verifique su conexión.",
     "unexpectedError": "Ocurrió un error inesperado. Por favor, inténtelo de nuevo."
+  },
+  "admin": {
+    "authVerification": {
+      "title": "Verificación de Proveedores de Autenticación",
+      "subtitle": "Pruebe proveedores OAuth para asegurar que estén configurados correctamente para el despliegue en producción.",
+      "deploymentStatus": "Estado del Despliegue",
+      "deploymentAllowed": "Todos los proveedores verificados - despliegue permitido",
+      "deploymentBlocked": "Verificación requerida - {days} días desde la última verificación",
+      "lastVerified": "Última verificación",
+      "never": "Nunca",
+      "createDeploymentGate": "Crear Puerta de Despliegue",
+      "requiredActions": "Acciones Requeridas:",
+      "configurationIssues": "Problemas de Configuración",
+      "testInstructions": "Instrucciones de Prueba",
+      "environmentInfo": "Información del Entorno",
+      "currentEnvironment": "Entorno Actual:",
+      "testedBy": "Probado por:",
+      "backendApi": "API Backend:",
+      "refresh": "Actualizar",
+      "providers": {
+        "google": "Google",
+        "microsoft": "Microsoft",
+        "linkedin": "LinkedIn",
+        "apple": "Apple",
+        "manualTestRequired": "Prueba manual requerida",
+        "automatedTestAvailable": "Prueba automática disponible",
+        "oauthNotConfigured": "OAuth no configurado",
+        "testLogin": "Probar inicio de sesión de {provider}",
+        "testing": "Probando...",
+        "oauthNotConfiguredButton": "OAuth No Configurado",
+        "lastTested": "Última prueba:",
+        "neverTested": "Nunca probado"
+      },
+      "status": {
+        "success": "Éxito",
+        "failure": "Fallo",
+        "notTested": "No probado",
+        "testFailed": "La última prueba falló. Verifique la configuración del proveedor."
+      },
+      "instructions": {
+        "step1": "Haga clic en \"Probar inicio de sesión de [Proveedor]\" para cada proveedor OAuth",
+        "step2": "Complete el flujo de autenticación en la ventana emergente/redirección",
+        "step3": "Regrese a esta página para ver la marca verde para pruebas exitosas",
+        "step4": "Todos los proveedores deben mostrar marcas verdes para aprobación de despliegue",
+        "step5": "Las pruebas son válidas por 10 días - vuelva a probar antes de cada despliegue en producción"
+      }
+    }
   }
 }

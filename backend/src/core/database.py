@@ -92,21 +92,28 @@ class DatabaseManager:
             
         try:
             # Create async engine with security-focused configuration
-            self._engine = create_async_engine(
-                settings.DATABASE_URL,
-                pool_size=settings.DATABASE_POOL_SIZE,
-                max_overflow=settings.DATABASE_MAX_OVERFLOW,
-                pool_timeout=settings.DATABASE_POOL_TIMEOUT,
-                pool_pre_ping=True,  # Validate connections
-                echo=settings.DEBUG,  # SQL logging in debug mode only
-                poolclass=NullPool if settings.is_development else None,
-                connect_args={
+            engine_args = {
+                "echo": settings.DEBUG,  # SQL logging in debug mode only
+                "connect_args": {
                     "server_settings": {
                         "application_name": f"compliance-engine-{settings.ENVIRONMENT}",
                         "search_path": "public,audit,cache",
                     }
                 }
-            )
+            }
+            
+            # Only add pool arguments if not using NullPool
+            if settings.is_development:
+                engine_args["poolclass"] = NullPool
+            else:
+                engine_args.update({
+                    "pool_size": settings.DATABASE_POOL_SIZE,
+                    "max_overflow": settings.DATABASE_MAX_OVERFLOW,
+                    "pool_timeout": settings.DATABASE_POOL_TIMEOUT,
+                    "pool_pre_ping": True,  # Validate connections
+                })
+            
+            self._engine = create_async_engine(settings.DATABASE_URL, **engine_args)
             
             # Create session factory
             self._session_factory = async_sessionmaker(

@@ -1,67 +1,84 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn, signOut, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import type { AuthVerificationResult, AuthVerificationSummary } from '@/utils/auth-verification';
+import { 
+  PlatformAuthProvider, 
+  PlatformAdminAuthGuard, 
+  PlatformAdminHeader,
+  usePlatformAuth 
+} from '@/components/PlatformAdminAuth';
+import { 
+  oidcVerificationAPI, 
+  getClientIdForProvider, 
+  getRedirectUriForProvider 
+} from '@/services/oidc-verification-api';
+import type { 
+  OIDCVerificationSummary, 
+  DeploymentReadiness,
+  ConfigValidation 
+} from '@/services/oidc-verification-api';
+import { ProviderLogos, type ProviderId } from '@/components/providers';
+import { initiateOAuthFlow, isOAuthConfigured } from '@/utils/oauth';
+import {
+  OAUTH_PROVIDERS,
+  OAUTH_PROVIDER_NAMES,
+  PROVIDER_COLORS,
+  VERIFICATION_ENVIRONMENTS,
+  type OAuthProviderId,
+} from '@/constants/oauth';
+import {
+  useCommonStrings,
+  useStatusStrings,
+  useProviderStrings,
+  useStringConstant,
+} from '@/hooks/useStringConstants';
+import { STRING_CONSTANTS } from '@/constants/strings';
 
 interface ProviderConfig {
-  id: string;
+  id: ProviderId;
   name: string;
-  icon: string;
   color: string;
   requiresManualTest: boolean;
 }
 
-const PROVIDERS: ProviderConfig[] = [
-  {
-    id: 'google',
-    name: 'Google',
-    icon: '🔍',
-    color: 'bg-red-500 hover:bg-red-600',
-    requiresManualTest: false
-  },
-  {
-    id: 'azure-ad',
-    name: 'Microsoft',
-    icon: '🏢',
-    color: 'bg-blue-500 hover:bg-blue-600',
-    requiresManualTest: false
-  },
-  {
-    id: 'linkedin',
-    name: 'LinkedIn',
-    icon: '💼',
-    color: 'bg-blue-700 hover:bg-blue-800',
-    requiresManualTest: true
-  },
-  {
-    id: 'apple',
-    name: 'Apple',
-    icon: '🍎',
-    color: 'bg-gray-800 hover:bg-gray-900',
-    requiresManualTest: true
-  }
-];
+const PROVIDERS: ProviderConfig[] = Object.values(OAUTH_PROVIDERS).map(providerId => ({
+  id: providerId as ProviderId,
+  name: OAUTH_PROVIDER_NAMES[providerId],
+  color: PROVIDER_COLORS[providerId],
+  requiresManualTest: providerId === OAUTH_PROVIDERS.LINKEDIN || providerId === OAUTH_PROVIDERS.APPLE
+}));
 
-export default function AuthVerificationPage() {
-  const { data: session } = useSession();
+function AuthVerificationDashboard() {
+  const { admin } = usePlatformAuth();
   const t = useTranslations('admin.authVerification');
-  const [verificationSummary, setVerificationSummary] = useState<AuthVerificationSummary | null>(null);
+  const common = useCommonStrings();
+  const status = useStatusStrings();
+  const provider = useProviderStrings();
+  const [verificationSummary, setVerificationSummary] = useState<OIDCVerificationSummary | null>(null);
+  const [deploymentReadiness, setDeploymentReadiness] = useState<DeploymentReadiness | null>(null);
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
-  const [configValidation, setConfigValidation] = useState<{ valid: boolean; issues: string[] } | null>(null);
+  const [configValidation, setConfigValidation] = useState<ConfigValidation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [environment, setEnvironment] = useState<string>(VERIFICATION_ENVIRONMENTS.PRODUCTION);
 
   useEffect(() => {
     loadVerificationStatus();
-  }, []);
+  }, [environment]);
 
   const loadVerificationStatus = async () => {
     try {
-      const response = await fetch('/api/auth-verification');
-      const data = await response.json();
-      setVerificationSummary(data.summary);
-      setConfigValidation(data.configValidation);
+      // Load verification summary
+      const summary = await oidcVerificationAPI.getVerificationSummary(environment);
+      setVerificationSummary(summary);
+
+      // Load deployment readiness
+      const readiness = await oidcVerificationAPI.checkDeploymentReadiness(environment);
+      setDeploymentReadiness(readiness);
+
+      // Load config validation
+      const validation = await oidcVerificationAPI.validateConfiguration();
+      setConfigValidation(validation);
     } catch (error) {
       console.error('Failed to load verification status:', error);
     } finally {
@@ -69,23 +86,24 @@ export default function AuthVerificationPage() {
     }
   };
 
-  const handleProviderTest = async (providerId: string) => {
+  const handleProviderTest = async (providerId: OAuthProviderId) => {
     setTestingProvider(providerId);
     
     try {
-      // Attempt to sign in with the provider
-      const result = await signIn(providerId, { 
-        redirect: false,
-        callbackUrl: `/admin/auth-verification?verified=${providerId}`
-      });
-      
-      if (result?.error) {
-        // Record failed verification
-        await recordVerificationResult(providerId, false, result.error);
-      } else if (result?.ok) {
-        // Success will be handled by the callback URL
-        console.log(`${providerId} authentication initiated successfully`);
+      // Check if OAuth is properly configured
+      if (!isOAuthConfigured(providerId)) {
+        throw new Error(`OAuth not configured for ${providerId}. Please set up OAuth credentials.`);
       }
+
+      // Initiate real OAuth flow
+      const result = await initiateOAuthFlow(providerId as string);
+      
+      await recordVerificationResult(
+        providerId, 
+        result.success, 
+        result.error,
+        result.userEmail
+      );
     } catch (error) {
       console.error(`${providerId} test failed:`, error);
       await recordVerificationResult(providerId, false, error instanceof Error ? error.message : 'Unknown error');
@@ -94,42 +112,44 @@ export default function AuthVerificationPage() {
     }
   };
 
-  const recordVerificationResult = async (provider: string, success: boolean, errorMessage?: string) => {
+
+  const recordVerificationResult = async (provider: string, success: boolean, errorMessage?: string, userEmail?: string) => {
     try {
-      const response = await fetch('/api/auth-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider,
-          success,
-          environment: process.env.NODE_ENV === 'production' ? 'production' : 'staging',
-          errorMessage
-        })
+      await oidcVerificationAPI.storeVerificationResult({
+        provider,
+        success,
+        environment: environment as any,
+        redirect_uri: getRedirectUriForProvider(provider as OAuthProviderId),
+        client_id: getClientIdForProvider(provider as OAuthProviderId),
+        user_email: userEmail || admin?.email,
+        error_message: errorMessage,
+        test_type: 'manual',
+        metadata: {
+          tested_from: 'admin_dashboard',
+          browser: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        }
       });
       
-      if (response.ok) {
-        await loadVerificationStatus();
-      }
+      // Reload verification status after recording result
+      await loadVerificationStatus();
     } catch (error) {
       console.error('Failed to record verification result:', error);
     }
   };
 
-  // Handle successful OAuth callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const verifiedProvider = urlParams.get('verified');
-    
-    if (verifiedProvider && session?.user) {
-      recordVerificationResult(verifiedProvider, true);
-      // Clean up URL
-      window.history.replaceState({}, '', '/admin/auth-verification');
+  const handleUpdateDeploymentGate = async () => {
+    try {
+      await oidcVerificationAPI.updateDeploymentGate(environment);
+      await loadVerificationStatus(); // Reload to show updated status
+    } catch (error) {
+      console.error('Failed to update deployment gate:', error);
     }
-  }, [session]);
+  };
 
   const getProviderStatus = (providerId: string): 'success' | 'failure' | 'not_tested' => {
     const providerResult = verificationSummary?.providers.find(p => p.provider === providerId);
-    return providerResult?.status || 'not_tested';
+    return (providerResult?.status as 'success' | 'failure' | 'not_tested') || 'not_tested';
   };
 
   const getProviderTimestamp = (providerId: string): string => {
@@ -180,13 +200,34 @@ export default function AuthVerificationPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Authentication Provider Verification
-          </h1>
-          <p className="text-gray-600">
-            Test OAuth providers to ensure they're properly configured for production deployment.
-            All providers must be verified within the last 10 days to allow automatic deployment.
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Authentication Provider Verification
+              </h1>
+              <p className="text-gray-600">
+                Test OAuth providers to ensure they're properly configured for production deployment.
+                All providers must be verified within the last 10 days to allow automatic deployment.
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <select
+                value={environment}
+                onChange={(e) => setEnvironment(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                <option value="production">Production</option>
+                <option value="staging">Staging</option>
+                <option value="development">Development</option>
+              </select>
+              <button
+                onClick={loadVerificationStatus}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              >
+{common.refresh()}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Deployment Status Card */}
@@ -200,23 +241,47 @@ export default function AuthVerificationPage() {
               <h2 className="text-xl font-semibold mb-2">
                 {verificationSummary?.deployment_allowed ? '🟢' : '🔴'} Deployment Status
               </h2>
-              <p className="text-sm">
+              <p className="text-sm mb-2">
                 {verificationSummary?.deployment_allowed 
                   ? 'All providers verified - deployment allowed'
                   : `Verification required - ${verificationSummary?.days_since_verification || 'unknown'} days since last verification`
                 }
               </p>
+              {deploymentReadiness && !deploymentReadiness.deployment_allowed && (
+                <div className="text-sm text-red-600">
+                  <strong>Reason:</strong> {deploymentReadiness.reason}
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">Last verified</div>
-              <div className="font-mono text-sm">
+              <div className="font-mono text-sm mb-3">
                 {verificationSummary?.last_verification 
                   ? formatTimeAgo(verificationSummary.last_verification)
                   : 'Never'
                 }
               </div>
+              {verificationSummary?.deployment_allowed && (
+                <button
+                  onClick={handleUpdateDeploymentGate}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                >
+                  Create Deployment Gate
+                </button>
+              )}
             </div>
           </div>
+          
+          {deploymentReadiness && deploymentReadiness.required_actions.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-red-200">
+              <h4 className="font-semibold text-red-800 mb-2">Required Actions:</h4>
+              <ul className="list-disc list-inside text-sm text-red-700">
+                {deploymentReadiness.required_actions.map((action, index) => (
+                  <li key={index}>{action}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Configuration Issues */}
@@ -237,6 +302,7 @@ export default function AuthVerificationPage() {
             const status = getProviderStatus(provider.id);
             const timestamp = getProviderTimestamp(provider.id);
             const isCurrentlyTesting = testingProvider === provider.id;
+            const ProviderLogo = ProviderLogos[provider.id];
 
             return (
               <div
@@ -245,11 +311,16 @@ export default function AuthVerificationPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <span className="text-2xl mr-3">{provider.icon}</span>
+                    <div className="w-8 h-8 mr-3 flex items-center justify-center">
+                      <ProviderLogo size={32} className="flex-shrink-0" />
+                    </div>
                     <div>
                       <h3 className="text-lg font-semibold">{provider.name}</h3>
                       <p className="text-sm text-gray-500">
-                        {provider.requiresManualTest ? 'Manual test required' : 'Automated test available'}
+                        {isOAuthConfigured(provider.id) 
+                          ? (provider.requiresManualTest ? 'Manual test required' : 'Automated test available')
+                          : 'OAuth not configured'
+                        }
                       </p>
                     </div>
                   </div>
@@ -265,7 +336,7 @@ export default function AuthVerificationPage() {
 
                 <button
                   onClick={() => handleProviderTest(provider.id)}
-                  disabled={isCurrentlyTesting || !session}
+                  disabled={isCurrentlyTesting || !isOAuthConfigured(provider.id)}
                   className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${provider.color}`}
                 >
                   {isCurrentlyTesting ? (
@@ -273,6 +344,8 @@ export default function AuthVerificationPage() {
                       <div className="license-verification-spinner mr-2"></div>
                       Testing...
                     </span>
+                  ) : !isOAuthConfigured(provider.id) ? (
+                    'OAuth Not Configured'
                   ) : (
                     `Test ${provider.name} Login`
                   )}
@@ -303,20 +376,37 @@ export default function AuthVerificationPage() {
         {/* Environment Info */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-semibold mb-2">Environment Information</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-gray-600">Environment:</span>
-              <span className="ml-2 font-mono">
-                {process.env.NODE_ENV === 'production' ? 'Production' : 'Staging'}
-              </span>
+              <span className="text-gray-600">Current Environment:</span>
+              <span className="ml-2 font-mono capitalize">{environment}</span>
             </div>
             <div>
-              <span className="text-gray-600">Base URL:</span>
-              <span className="ml-2 font-mono">{process.env.NEXTAUTH_URL || 'Not configured'}</span>
+              <span className="text-gray-600">Tested by:</span>
+              <span className="ml-2 font-mono">{admin?.email || 'Unknown'}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Backend API:</span>
+              <span className="ml-2 font-mono text-xs">
+                {process.env.NEXT_PUBLIC_API_URL || 'localhost:8000'}
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthVerificationPage() {
+  return (
+    <PlatformAuthProvider>
+      <PlatformAdminAuthGuard>
+        <div className="min-h-screen bg-gray-50">
+          <PlatformAdminHeader />
+          <AuthVerificationDashboard />
+        </div>
+      </PlatformAdminAuthGuard>
+    </PlatformAuthProvider>
   );
 }

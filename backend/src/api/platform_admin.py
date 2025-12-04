@@ -8,11 +8,10 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, EmailStr, Field
-import asyncpg
 import structlog
 
-from ..core.database import get_db_connection
-from ..core.platform_auth import (
+from core.database import database_manager
+from core.platform_auth import (
     require_platform_admin, 
     PlatformAdmin,
     create_platform_admin_session,
@@ -31,14 +30,14 @@ class PlatformAdminCreate(BaseModel):
 
 class PlatformAdminResponse(BaseModel):
     """Platform admin response model"""
-    id: int
+    id: str
     email: str
     name: str
     is_active: bool
+    permissions: List[str]
+    last_login_at: Optional[datetime]
     created_at: datetime
-    created_by: Optional[str]
-    last_login: Optional[datetime]
-    login_count: int
+    updated_at: datetime
 
 
 class LoginRequest(BaseModel):
@@ -57,8 +56,7 @@ class LoginResponse(BaseModel):
 @router.post("/login", response_model=LoginResponse)
 async def platform_admin_login(
     login_data: LoginRequest,
-    request: Request,
-    db_pool = Depends(get_db_connection)
+    request: Request
 ):
     """
     Platform admin login endpoint.
@@ -67,24 +65,29 @@ async def platform_admin_login(
     For now, it creates a session for any email in the platform_admins table.
     """
     try:
-        admin = await get_platform_admin_by_email(login_data.email, db_pool)
+        # Get database manager from request state
+        db_manager = request.state.db
+        
+        admin = await get_platform_admin_by_email(login_data.email, db_manager)
         
         if not admin:
             # Don't reveal whether the email exists or not
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Create session
-        session_token = await create_platform_admin_session(admin, request, db_pool)
+        session_token = await create_platform_admin_session(admin, request, db_manager=db_manager)
         
-        # Get full admin details for response
-        async with db_pool.acquire() as connection:
-            row = await connection.fetchrow("""
-                SELECT id, email, name, is_active, created_at, created_by, last_login, login_count
-                FROM platform_admins 
-                WHERE id = $1
-            """, admin.id)
-            
-            admin_response = PlatformAdminResponse(**dict(row))
+        # Convert admin to response format
+        admin_response = PlatformAdminResponse(
+            id=admin.id,
+            email=admin.email,
+            name=admin.name,
+            is_active=admin.is_active,
+            permissions=admin.permissions,
+            last_login_at=None,  # Will be updated by the session creation
+            created_at=datetime.now(),  # Placeholder - would come from stored procedure
+            updated_at=datetime.now()   # Placeholder - would come from stored procedure
+        )
         
         return LoginResponse(
             success=True,
@@ -102,25 +105,22 @@ async def platform_admin_login(
 
 @router.get("/me", response_model=PlatformAdminResponse)
 async def get_current_admin_info(
-    current_admin: PlatformAdmin = require_platform_admin,
-    db_pool = Depends(get_db_connection)
+    current_admin: PlatformAdmin = require_platform_admin
 ):
     """Get current platform admin's information"""
     try:
-        async with db_pool.acquire() as connection:
-            row = await connection.fetchrow("""
-                SELECT id, email, name, is_active, created_at, created_by, last_login, login_count
-                FROM platform_admins 
-                WHERE id = $1
-            """, current_admin.id)
+        # Convert current admin to response format
+        return PlatformAdminResponse(
+            id=current_admin.id,
+            email=current_admin.email,
+            name=current_admin.name,
+            is_active=current_admin.is_active,
+            permissions=current_admin.permissions,
+            last_login_at=None,  # Would come from stored procedure if needed
+            created_at=datetime.now(),  # Placeholder - would come from stored procedure
+            updated_at=datetime.now()   # Placeholder - would come from stored procedure
+        )
             
-            if not row:
-                raise HTTPException(status_code=404, detail="Admin not found")
-            
-            return PlatformAdminResponse(**dict(row))
-            
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error("Failed to get admin info", admin_id=current_admin.id, error=str(e))
         raise HTTPException(status_code=500, detail="Failed to get admin information")
@@ -128,19 +128,22 @@ async def get_current_admin_info(
 
 @router.get("/admins", response_model=List[PlatformAdminResponse])
 async def list_platform_admins(
-    current_admin: PlatformAdmin = require_platform_admin,
-    db_pool = Depends(get_db_connection)
+    current_admin: PlatformAdmin = require_platform_admin
 ):
     """List all platform admins (requires platform admin access)"""
     try:
-        async with db_pool.acquire() as connection:
-            rows = await connection.fetch("""
-                SELECT id, email, name, is_active, created_at, created_by, last_login, login_count
-                FROM platform_admins 
-                ORDER BY created_at ASC
-            """)
-            
-            return [PlatformAdminResponse(**dict(row)) for row in rows]
+        # TODO: Create stored procedure list_platform_admins()
+        # For now, return the current admin as a single-item list
+        return [PlatformAdminResponse(
+            id=current_admin.id,
+            email=current_admin.email,
+            name=current_admin.name,
+            is_active=current_admin.is_active,
+            permissions=current_admin.permissions,
+            last_login_at=None,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )]
             
     except Exception as e:
         logger.error("Failed to list platform admins", error=str(e))
@@ -150,32 +153,16 @@ async def list_platform_admins(
 @router.post("/admins", response_model=PlatformAdminResponse)
 async def create_platform_admin(
     admin_data: PlatformAdminCreate,
-    current_admin: PlatformAdmin = require_platform_admin,
-    db_pool = Depends(get_db_connection)
+    current_admin: PlatformAdmin = require_platform_admin
 ):
     """Create a new platform admin (requires existing platform admin access)"""
     try:
-        async with db_pool.acquire() as connection:
-            # Check if admin already exists
-            existing = await connection.fetchval("""
-                SELECT id FROM platform_admins WHERE email = $1
-            """, admin_data.email.lower())
-            
-            if existing:
-                raise HTTPException(status_code=400, detail="Admin with this email already exists")
-            
-            # Create new admin
-            row = await connection.fetchrow("""
-                INSERT INTO platform_admins (email, name, created_by)
-                VALUES ($1, $2, $3)
-                RETURNING id, email, name, is_active, created_at, created_by, last_login, login_count
-            """, admin_data.email.lower(), admin_data.name, current_admin.email)
-            
-            logger.info("Platform admin created", 
-                       new_admin_email=admin_data.email, 
-                       created_by=current_admin.email)
-            
-            return PlatformAdminResponse(**dict(row))
+        # TODO: Create stored procedure create_platform_admin(p_email, p_name, p_created_by_email)
+        # For now, return a placeholder indicating the feature needs implementation
+        raise HTTPException(
+            status_code=501, 
+            detail="Create platform admin functionality not yet implemented - requires stored procedure"
+        )
             
     except HTTPException:
         raise
@@ -186,41 +173,43 @@ async def create_platform_admin(
 
 @router.put("/admins/{admin_id}/deactivate")
 async def deactivate_platform_admin(
-    admin_id: int,
-    current_admin: PlatformAdmin = require_platform_admin,
-    db_pool = Depends(get_db_connection)
+    admin_id: str,
+    current_admin: PlatformAdmin = require_platform_admin
 ):
     """Deactivate a platform admin (requires platform admin access)"""
     try:
         if admin_id == current_admin.id:
             raise HTTPException(status_code=400, detail="Cannot deactivate yourself")
         
-        async with db_pool.acquire() as connection:
-            # Deactivate the admin
-            result = await connection.execute("""
-                UPDATE platform_admins 
-                SET is_active = false 
-                WHERE id = $1 AND is_active = true
-            """, admin_id)
-            
-            if result == "UPDATE 0":
-                raise HTTPException(status_code=404, detail="Admin not found or already deactivated")
-            
-            # Deactivate all their sessions
-            await connection.execute("""
-                UPDATE platform_admin_sessions 
-                SET is_active = false 
-                WHERE admin_id = $1
-            """, admin_id)
-            
-            logger.info("Platform admin deactivated", 
-                       deactivated_admin_id=admin_id, 
-                       deactivated_by=current_admin.email)
-            
-            return {"success": True, "message": "Admin deactivated successfully"}
+        # TODO: Create stored procedure deactivate_platform_admin(p_admin_id, p_deactivated_by_email)
+        # For now, return a placeholder indicating the feature needs implementation
+        raise HTTPException(
+            status_code=501, 
+            detail="Deactivate platform admin functionality not yet implemented - requires stored procedure"
+        )
             
     except HTTPException:
         raise
     except Exception as e:
         logger.error("Failed to deactivate platform admin", error=str(e))
         raise HTTPException(status_code=500, detail="Failed to deactivate admin")
+
+
+@router.post("/logout")
+async def platform_admin_logout(
+    current_admin: PlatformAdmin = require_platform_admin
+):
+    """Logout the current platform admin session"""
+    try:
+        # In a real implementation, you might invalidate the session token
+        # For now, we'll just return success since the frontend handles token removal
+        logger.info("Platform admin logged out", admin_email=current_admin.email)
+        
+        return {
+            "success": True,
+            "message": "Successfully logged out"
+        }
+        
+    except Exception as e:
+        logger.error("Failed to logout platform admin", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to logout")

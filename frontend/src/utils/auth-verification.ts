@@ -5,16 +5,28 @@
  * configured in production, with evidence tracking for deployment gates.
  */
 
+import {
+  OAUTH_PROVIDERS,
+  OAUTH_STATUS,
+  OAUTH_TEST_TYPES,
+  VERIFICATION_ENVIRONMENTS,
+  OAUTH_ENV_VARS,
+  type OAuthProviderId,
+  type OAuthStatus,
+  type OAuthTestType,
+  type VerificationEnvironment,
+} from '@/constants/oauth';
+
 export interface AuthVerificationResult {
-  provider: string;
-  status: 'success' | 'failure' | 'not_tested';
+  provider: OAuthProviderId;
+  status: OAuthStatus;
   timestamp: string;
-  environment: string;
+  environment: VerificationEnvironment;
   redirect_uri: string;
   client_id: string;
   user_email?: string;
   error_message?: string;
-  test_type: 'manual' | 'automated';
+  test_type: OAuthTestType;
 }
 
 export interface AuthVerificationSummary {
@@ -29,9 +41,9 @@ export interface AuthVerificationSummary {
  * Generate a verification report for a successful OAuth login
  */
 export function createVerificationResult(
-  provider: string,
+  provider: OAuthProviderId,
   success: boolean,
-  environment: string,
+  environment: VerificationEnvironment,
   userEmail?: string,
   errorMessage?: string
 ): AuthVerificationResult {
@@ -40,33 +52,24 @@ export function createVerificationResult(
   
   return {
     provider,
-    status: success ? 'success' : 'failure',
+    status: success ? OAUTH_STATUS.SUCCESS : OAUTH_STATUS.FAILURE,
     timestamp: new Date().toISOString(),
     environment,
     redirect_uri: redirectUri,
     client_id: clientId,
     user_email: userEmail,
     error_message: errorMessage,
-    test_type: 'manual'
+    test_type: OAUTH_TEST_TYPES.MANUAL
   };
 }
 
 /**
  * Get the client ID for a provider (safe to log, not the secret)
  */
-function getClientIdForProvider(provider: string): string {
-  switch (provider) {
-    case 'google':
-      return process.env.GOOGLE_CLIENT_ID || 'not_configured';
-    case 'azure-ad':
-      return process.env.AZURE_AD_CLIENT_ID || 'not_configured';
-    case 'linkedin':
-      return process.env.LINKEDIN_CLIENT_ID || 'not_configured';
-    case 'apple':
-      return process.env.APPLE_ID || 'not_configured';
-    default:
-      return 'unknown_provider';
-  }
+function getClientIdForProvider(provider: OAuthProviderId): string {
+  // Use server-side env vars (without NEXT_PUBLIC_)
+  const envVar = OAUTH_ENV_VARS[provider].replace('NEXT_PUBLIC_', '');
+  return process.env[envVar] || 'not_configured';
 }
 
 /**
@@ -118,7 +121,7 @@ export async function saveVerificationResult(result: AuthVerificationResult): Pr
  * Generate a summary of verification status for deployment decisions
  */
 export async function getVerificationSummary(
-  environment: string = 'production',
+  environment: VerificationEnvironment = VERIFICATION_ENVIRONMENTS.PRODUCTION,
   maxDaysOld: number = 10
 ): Promise<AuthVerificationSummary> {
   const results = await loadVerificationResults();
@@ -134,19 +137,19 @@ export async function getVerificationSummary(
   });
   
   const providers = Array.from(latestResults.values());
-  const requiredProviders = ['google', 'azure-ad', 'linkedin', 'apple'];
+  const requiredProviders = Object.values(OAUTH_PROVIDERS);
   
   // Add missing providers as not tested
   requiredProviders.forEach(provider => {
     if (!latestResults.has(provider)) {
       providers.push({
         provider,
-        status: 'not_tested',
+        status: OAUTH_STATUS.NOT_TESTED,
         timestamp: '',
         environment,
         redirect_uri: `${process.env.NEXTAUTH_URL || process.env.AUTH_URL}/api/auth/callback/${provider}`,
         client_id: getClientIdForProvider(provider),
-        test_type: 'manual'
+        test_type: OAUTH_TEST_TYPES.MANUAL
       });
     }
   });
@@ -162,7 +165,7 @@ export async function getVerificationSummary(
     ? Math.floor((Date.now() - lastVerification.getTime()) / (1000 * 60 * 60 * 24))
     : Infinity;
   
-  const allProvidersVerified = providers.every(p => p.status === 'success');
+  const allProvidersVerified = providers.every(p => p.status === OAUTH_STATUS.SUCCESS);
   const deploymentAllowed = allProvidersVerified && daysSince <= maxDaysOld;
   
   return {
@@ -217,7 +220,7 @@ export async function validateOAuthConfiguration(): Promise<{
   }
   
   // Validate redirect URIs are properly formatted
-  const providers = ['google', 'azure-ad', 'linkedin', 'apple'];
+  const providers = Object.values(OAUTH_PROVIDERS);
   providers.forEach(provider => {
     const redirectUri = `${nextAuthUrl}/api/auth/callback/${provider}`;
     try {

@@ -157,5 +157,52 @@
     "multipleSimilar": "Multiple similar license numbers found",
     "networkError": "Network error occurred. Please check your connection.",
     "unexpectedError": "An unexpected error occurred. Please try again."
+  },
+  "admin": {
+    "authVerification": {
+      "title": "Authentication Provider Verification",
+      "subtitle": "Test OAuth providers to ensure they're properly configured for production deployment.",
+      "deploymentStatus": "Deployment Status",
+      "deploymentAllowed": "All providers verified - deployment allowed",
+      "deploymentBlocked": "Verification required - {days} days since last verification",
+      "lastVerified": "Last verified",
+      "never": "Never",
+      "createDeploymentGate": "Create Deployment Gate",
+      "requiredActions": "Required Actions:",
+      "configurationIssues": "Configuration Issues",
+      "testInstructions": "Testing Instructions",
+      "environmentInfo": "Environment Information",
+      "currentEnvironment": "Current Environment:",
+      "testedBy": "Tested by:",
+      "backendApi": "Backend API:",
+      "refresh": "Refresh",
+      "providers": {
+        "google": "Google",
+        "microsoft": "Microsoft", 
+        "linkedin": "LinkedIn",
+        "apple": "Apple",
+        "manualTestRequired": "Manual test required",
+        "automatedTestAvailable": "Automated test available",
+        "oauthNotConfigured": "OAuth not configured",
+        "testLogin": "Test {provider} Login",
+        "testing": "Testing...",
+        "oauthNotConfiguredButton": "OAuth Not Configured",
+        "lastTested": "Last tested:",
+        "neverTested": "Never tested"
+      },
+      "status": {
+        "success": "Success",
+        "failure": "Failure", 
+        "notTested": "Not tested",
+        "testFailed": "Last test failed. Check provider configuration."
+      },
+      "instructions": {
+        "step1": "Click \"Test [Provider] Login\" for each OAuth provider",
+        "step2": "Complete the authentication flow in the popup/redirect", 
+        "step3": "Return to this page to see the green checkmark for successful tests",
+        "step4": "All providers must show green checkmarks for deployment approval",
+        "step5": "Tests are valid for 10 days - re-test before each production deployment"
+      }
+    }
   }
 }

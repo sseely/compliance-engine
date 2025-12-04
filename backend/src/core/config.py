@@ -171,6 +171,18 @@ class DatabaseSettings:
         "revoke_api_key",
         "audit_user_activity",
         
+        # Platform admin authentication procedures
+        "get_platform_admin_by_email",
+        "create_platform_admin_session", 
+        "validate_platform_admin_session",
+        "cleanup_expired_platform_admin_sessions",
+        
+        # OIDC verification procedures
+        "store_oidc_verification_result",
+        "get_oidc_verification_summary",
+        "check_deployment_readiness",
+        "update_deployment_gate",
+        
         # Health check procedures
         "health_check_database",
         "health_check_connections",

@@ -21,11 +21,11 @@ SUPPORTED_LANGUAGES = {
 
 DEFAULT_LANGUAGE = "en"
 
-# Babel configuration
+# Babel configuration  
 babel_configs = BabelConfigs(
     ROOT_DIR=str(Path(__file__).parent.parent.parent),  # Points to backend/
     BABEL_DEFAULT_LOCALE=DEFAULT_LANGUAGE,
-    BABEL_TRANSLATION_DIRECTORY="locales",
+    BABEL_TRANSLATION_DIRECTORY=str(Path(__file__).parent.parent.parent / "locales"),  # Full path to locales
     BABEL_CONFIG_FILE="babel.cfg",
 )
 
@@ -61,9 +61,10 @@ def locale_selector(request: Request) -> str:
     return DEFAULT_LANGUAGE
 
 
-def get_babel_middleware():
+def get_babel_middleware(app):
     """Get configured Babel middleware instance"""
     return BabelMiddleware(
+        app=app,
         babel_configs=babel_configs,
         locale_selector=locale_selector
     )

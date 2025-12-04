@@ -14,6 +14,8 @@ from core.database import database_manager
 from core.config import settings
 from core.exceptions import DatabaseError
 from fastapi_babel import _
+from constants.strings import STRINGS
+from utils.i18n_helpers import t, get_translator
 
 logger = structlog.get_logger(__name__)
 
@@ -57,7 +59,7 @@ async def health_check():
     
     # Perform basic checks
     checks = {
-        "api": _("healthy"),
+        "api": t(STRINGS.COMMON.HEALTHY),
         "timestamp": timestamp,
         "environment": settings.ENVIRONMENT,
         "version": settings.VERSION
@@ -66,14 +68,17 @@ async def health_check():
     # Quick database connectivity check
     try:
         db_health = await database_manager.health_check()
-        checks["database"] = _(db_health["status"])
+        checks["database"] = t(db_health["status"])
     except Exception as e:
         logger.error("health_check_database_failed", error=str(e))
-        checks["database"] = _("unhealthy")
+        checks["database"] = t(STRINGS.COMMON.UNHEALTHY)
     
-    overall_status = _("healthy") if all(
-        check == _("healthy") for check in checks.values() if isinstance(check, str)
-    ) else _("unhealthy")
+    healthy_status = t(STRINGS.COMMON.HEALTHY)
+    unhealthy_status = t(STRINGS.COMMON.UNHEALTHY)
+    
+    overall_status = healthy_status if all(
+        check == healthy_status for check in checks.values() if isinstance(check, str)
+    ) else unhealthy_status
     
     return HealthResponse(
         status=overall_status,
