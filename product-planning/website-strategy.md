@@ -24,19 +24,18 @@ You're absolutely right - the website is the highest-risk component because:
 
 **Homepage Strategy**: Get developers to "aha moment" in 60 seconds
 
-```
-Above-the-fold structure:
-┌─────────────────────────────────────────────────┐
-│ Compliance APIs That Actually Work              │
-│ [Live Demo: Verify License] [Interactive Docs] │
-│                                                 │
-│ curl -X POST https://api.compliance-engine.com/│
-│   license/verify \                              │
-│   -H "X-API-Key: demo_key" \                    │
-│   -d '{"license": "ABC123", "state": "CA"}'     │
-│                                                 │
-│ → Returns verified contractor data in 800ms     │
-└─────────────────────────────────────────────────┘
+```mermaid
+block-beta
+    columns 1
+    block:hero["Above-the-fold structure"]
+        columns 1
+        title["Compliance APIs That Actually Work"]
+        buttons["[Live Demo: Verify License]  [Interactive Docs]"]
+        space
+        code["curl -X POST https://api.compliance-engine.com/license/verify<br/>-H 'X-API-Key: demo_key'<br/>-d '{\"license\": \"ABC123\", \"state\": \"CA\"}'"]
+        space
+        result["→ Returns verified contractor data in 800ms"]
+    end
 ```
 
 **Working Demo Strategy**:
@@ -181,30 +180,36 @@ Documentation structure:
 ### 5. Conversion-Optimized Onboarding Flow
 
 #### Step 1: Immediate API Access (No friction)
-```
-Landing page → [Get Free API Key] → Email verification → Dashboard
-                     ↓
-               Working example in inbox
+
+```mermaid
+flowchart LR
+    A[Landing page] --> B["Get Free API Key"]
+    B --> C[Email verification]
+    C --> D[Dashboard]
+    B --> E[Working example in inbox]
 ```
 
 #### Step 2: Progressive Disclosure
-```
-Dashboard shows:
-├── API key (prominently displayed)
-├── Quick start guide (5 steps)
-├── Live API tester (integrated)
-├── Usage meter (real-time)
-└── Upgrade prompt (when approaching limits)
+
+```mermaid
+flowchart TD
+    subgraph Dashboard["Dashboard shows"]
+        A["🔑 API key (prominently displayed)"]
+        B["📖 Quick start guide (5 steps)"]
+        C["🧪 Live API tester (integrated)"]
+        D["📊 Usage meter (real-time)"]
+        E["⬆️ Upgrade prompt (when approaching limits)"]
+    end
 ```
 
 #### Step 3: Success Milestones
-```
-Onboarding milestones:
-1. First API call made ✓
-2. First successful verification ✓  
-3. Error handling tested ✓
-4. Production integration started ✓
-5. Volume threshold reached (upgrade prompt)
+
+```mermaid
+flowchart LR
+    A["1. First API call made ✓"] --> B["2. First successful verification ✓"]
+    B --> C["3. Error handling tested ✓"]
+    C --> D["4. Production integration started ✓"]
+    D --> E["5. Volume threshold reached<br/>(upgrade prompt)"]
 ```
 
 ### 6. Self-Service Customer Portal
@@ -302,17 +307,22 @@ const testVariations = {
 ```
 
 #### Key Metrics to Track
-```
-Conversion funnel:
-Landing page → Documentation → Demo → Signup → First API call → Paid plan
 
-Key metrics:
+```mermaid
+flowchart LR
+    A[Landing page] --> B[Documentation]
+    B --> C[Demo]
+    C --> D[Signup]
+    D --> E[First API call]
+    E --> F[Paid plan]
+```
+
+**Key metrics:**
 - Time to first API call (target: <10 minutes)
 - Documentation engagement (pages viewed, time spent)
 - Demo completion rate (target: >60%)
 - Trial to paid conversion (target: >25%)
 - Customer lifetime value by acquisition channel
-```
 
 ### 10. Competitive Differentiation
 
