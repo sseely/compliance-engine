@@ -17,52 +17,127 @@
 
 ## Target User Flow
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         LOGIN PAGE                               │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│  │  Google  │  │Microsoft │  │ LinkedIn │  │  Apple   │        │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘        │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    OIDC CALLBACK HANDLER                         │
-│  1. Exchange code for tokens                                     │
-│  2. Extract user identity (email, name, provider)               │
-│  3. Find or create user account                                  │
-│  4. Look up organization memberships                             │
-│  5. Issue session token                                          │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────┴───────────────┐
-              │                               │
-              ▼                               ▼
-┌─────────────────────────┐     ┌─────────────────────────┐
-│   SINGLE ORG (common)   │     │   MULTI-ORG (rare)      │
-│   Skip selector         │     │   Show org picker       │
-└─────────────────────────┘     └─────────────────────────┘
-              │                               │
-              └───────────────┬───────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      PRODUCT DASHBOARD                           │
-│  Shows products the current org has purchased                    │
-│  ┌──────────────────┐  ┌──────────────────┐                     │
-│  │ License Tracker  │  │ Fleet Compliance │  (grayed if unpaid) │
-│  │ ✓ Active         │  │ ✗ Not purchased  │                     │
-│  └──────────────────┘  └──────────────────┘                     │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    PRODUCT-SPECIFIC UI                           │
-│  (Professional License Tracker, Fleet Tracker, etc.)            │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Login["Login Page"]
+        G[Google]
+        M[Microsoft]
+        L[LinkedIn]
+        A[Apple]
+    end
+
+    Login --> Callback
+
+    subgraph Callback["OIDC Callback Handler"]
+        C1[1. Exchange code for tokens]
+        C2[2. Extract user identity]
+        C3[3. Find or create user account]
+        C4[4. Look up organization memberships]
+        C5[5. Issue session token]
+        C1 --> C2 --> C3 --> C4 --> C5
+    end
+
+    Callback --> OrgCheck{How many orgs?}
+
+    OrgCheck -->|Single org| SkipSelector[Skip selector]
+    OrgCheck -->|Multiple orgs| ShowPicker[Show org picker]
+
+    SkipSelector --> Dashboard
+    ShowPicker --> Dashboard
+
+    subgraph Dashboard["Product Dashboard"]
+        P1[License Tracker<br/>✓ Active]
+        P2[Fleet Compliance<br/>✗ Not purchased]
+    end
+
+    Dashboard --> Product["Product-Specific UI<br/>(License Tracker, Fleet, etc.)"]
 ```
 
 ## Data Model
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    users ||--o{ user_identities : "has"
+    users ||--o{ organization_members : "belongs to"
+    users ||--o{ user_sessions : "has"
+    users ||--o{ user_trial_limits : "has"
+
+    organizations ||--o{ organization_members : "has"
+    organizations ||--o{ organization_subscriptions : "subscribes"
+    organizations ||--o{ organization_invitations : "sends"
+
+    products ||--o{ organization_subscriptions : "subscribed by"
+
+    users {
+        uuid id PK
+        varchar email UK
+        boolean email_verified
+        varchar name
+        text avatar_url
+        timestamptz last_login_at
+        boolean is_active
+    }
+
+    user_identities {
+        uuid id PK
+        uuid user_id FK
+        varchar provider
+        varchar provider_user_id
+        jsonb provider_data
+    }
+
+    organizations {
+        uuid id PK
+        varchar name
+        varchar slug UK
+        varchar billing_email
+        varchar billing_status
+        varchar payment_customer_id
+    }
+
+    organization_members {
+        uuid id PK
+        uuid organization_id FK
+        uuid user_id FK
+        varchar role
+        timestamptz joined_at
+    }
+
+    products {
+        uuid id PK
+        varchar code UK
+        varchar name
+        varchar pricing_model
+        integer base_price_cents
+    }
+
+    organization_subscriptions {
+        uuid id PK
+        uuid organization_id FK
+        uuid product_id FK
+        varchar status
+        integer seat_count
+        integer seat_limit
+    }
+
+    user_sessions {
+        uuid id PK
+        uuid user_id FK
+        varchar session_token UK
+        uuid current_organization_id FK
+        timestamptz expires_at
+    }
+
+    user_trial_limits {
+        uuid id PK
+        uuid user_id FK
+        varchar product_code
+        integer usage_limit
+        integer usage_count
+    }
+```
 
 ### Core Tables
 
