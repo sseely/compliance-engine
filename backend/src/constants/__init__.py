@@ -1,10 +1,12 @@
 """
 Constants package for the Compliance Engine backend.
 
-This package contains centralized constants for various aspects of the application,
-including string constants for internationalization.
+This package provides:
+- MSG: User-facing messages that require translation
+- INTERNAL: Internal constants (logs, diagnostics) that stay in English
 """
 
-from .strings import STRINGS, t_success, t_error, t_healthy, t_unhealthy
+from .user_messages import MSG
+from .internal import INTERNAL
 
-__all__ = ['STRINGS', 't_success', 't_error', 't_healthy', 't_unhealthy']
+__all__ = ['MSG', 'INTERNAL']

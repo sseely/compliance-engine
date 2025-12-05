@@ -28,6 +28,7 @@ import asyncpg
 
 from core.database import database_manager
 from core.config import settings
+from utils.request_helpers import get_client_ip
 # Note: Platform admin auth will be implemented later
 
 
@@ -51,7 +52,7 @@ def generate_session_id(request: Request) -> str:
     """Generate a consistent session ID for the user based on IP and User-Agent."""
     # Use IP + User-Agent for basic session tracking
     # This is simple and doesn't require cookies/storage
-    ip = request.client.host if request.client else "unknown"
+    ip = get_client_ip(request) or "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
     
     # Create a hash to anonymize while maintaining consistency
@@ -73,7 +74,7 @@ async def track_language_request(
     """
     try:
         # Extract request metadata
-        ip_address = request.client.host if request.client else None
+        ip_address = get_client_ip(request)
         session_id = generate_session_id(request)
         
         # Validate language code format (basic validation)

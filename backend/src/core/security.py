@@ -18,12 +18,13 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .config import settings
 from .database import database_manager
 from .exceptions import (
-    AuthenticationError, 
-    AuthorizationError, 
+    AuthenticationError,
+    AuthorizationError,
     SecurityViolationError,
     ValidationError
 )
 from .logging_config import audit_logger
+from utils.request_helpers import get_client_ip
 
 logger = structlog.get_logger(__name__)
 
@@ -171,7 +172,7 @@ class CORSManager:
                     user_id=customer_id or "anonymous",
                     action="cors_allowed",
                     resource="api_access",
-                    ip_address=request.client.host if request.client else None,
+                    ip_address=get_client_ip(request),
                     details={"origin": origin}
                 )
             else:
@@ -180,14 +181,14 @@ class CORSManager:
                     "cors_origin_blocked",
                     origin=origin,
                     customer_id=customer_id,
-                    ip_address=request.client.host if request.client else None
+                    ip_address=get_client_ip(request)
                 )
-                
+
                 audit_logger.log_user_action(
                     user_id=customer_id or "anonymous",
                     action="cors_blocked",
                     resource="api_access",
-                    ip_address=request.client.host if request.client else None,
+                    ip_address=get_client_ip(request),
                     details={"origin": origin, "reason": "origin_not_allowed"}
                 )
         

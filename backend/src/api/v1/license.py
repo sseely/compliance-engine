@@ -16,12 +16,13 @@ from core.database import database_manager
 from core.security import security_manager
 from core.exceptions import (
     ValidationError,
-    BusinessLogicError, 
+    BusinessLogicError,
     NotFoundError,
     AuthenticationError
 )
 from core.config import settings
 from core.logging_config import audit_logger
+from utils.request_helpers import get_client_ip
 from fastapi_babel import _
 
 logger = structlog.get_logger(__name__)
@@ -190,7 +191,7 @@ async def verify_license(
                 "p_state_code": verification_request.state,
                 "p_license_type": verification_request.license_type.value,
                 "p_license_number": verification_request.license_number,
-                "p_requester_ip": request.client.host if request.client else None
+                "p_requester_ip": get_client_ip(request)
             }
         )
         
@@ -225,7 +226,7 @@ async def verify_license(
                 "p_verification_status": result_data["verification_status"],
                 "p_licenses_found_count": len(licenses_found),
                 "p_confidence_score": result_data["confidence_score"],
-                "p_ip_address": request.client.host if request.client else None
+                "p_ip_address": get_client_ip(request)
             }
         )
         
@@ -235,7 +236,7 @@ async def verify_license(
             action="license_verification",
             resource="business_license",
             resource_id=request_id,
-            ip_address=request.client.host if request.client else None,
+            ip_address=get_client_ip(request),
             details={
                 "state": verification_request.state,
                 "license_type": verification_request.license_type.value,
@@ -280,7 +281,7 @@ async def verify_license(
             user_id=customer["customer_id"],
             action="license_verification_failed",
             resource="business_license",
-            ip_address=request.client.host if request.client else None,
+            ip_address=get_client_ip(request),
             details={
                 "error": str(e),
                 "state": verification_request.state,
@@ -357,7 +358,7 @@ async def get_license_history(
                 "start_date": history_request.start_date.isoformat() if history_request.start_date else None,
                 "end_date": history_request.end_date.isoformat() if history_request.end_date else None
             },
-            ip_address=request.client.host if request.client else None
+            ip_address=get_client_ip(request)
         )
         
         response = LicenseHistoryResponse(
@@ -425,7 +426,7 @@ async def get_license_status(
             data_type="license_status",
             operation="read",
             query_params={"license_id": license_id},
-            ip_address=request.client.host if request.client else None
+            ip_address=get_client_ip(request)
         )
         
         return LicenseInfo(

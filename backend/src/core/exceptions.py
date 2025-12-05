@@ -8,6 +8,8 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 import structlog
 
+from utils.request_helpers import get_client_ip
+
 logger = structlog.get_logger(__name__)
 
 
@@ -162,7 +164,7 @@ async def compliance_exception_handler(request: Request, exc: ComplianceEngineEx
         message=exc.message,
         path=request.url.path,
         method=request.method,
-        client_ip=request.client.host if request.client else None,
+        client_ip=get_client_ip(request),
         details=exc.details
     )
     

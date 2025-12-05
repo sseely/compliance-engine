@@ -15,6 +15,7 @@ import structlog
 
 from .database import DatabaseManager
 from .config import settings
+from utils.request_helpers import get_client_ip
 
 logger = structlog.get_logger(__name__)
 
@@ -81,7 +82,7 @@ async def create_platform_admin_session(
         session_token = secrets.token_urlsafe(64)
         
         # Get request metadata
-        ip_address = request.client.host if request.client else None
+        ip_address = get_client_ip(request)
         user_agent = request.headers.get("user-agent")
         
         db = db_manager or database_manager

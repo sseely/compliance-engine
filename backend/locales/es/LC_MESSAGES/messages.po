@@ -1,15 +1,14 @@
-# Spanish translations for PROJECT.
-# Copyright (C) 2025 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# Spanish translations for Compliance Engine.
+# Copyright (C) 2025 Compliance Engine
+# This file is distributed under the same license as the Compliance Engine project.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-11-01 20:33-0500\n"
-"PO-Revision-Date: 2025-11-01 20:31-0500\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Project-Id-Version: Compliance Engine 1.0\n"
+"Report-Msgid-Bugs-To: support@complianceengine.com\n"
+"POT-Creation-Date: 2025-12-04 20:30-0600\n"
+"PO-Revision-Date: 2025-12-04 20:30-0600\n"
+"Last-Translator: Compliance Engine Team\n"
 "Language: es\n"
 "Language-Team: es <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -18,42 +17,146 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: src/api/i18n.py:96 src/main.py:200
-msgid "Compliance Engine API"
-msgstr "API del Motor de Cumplimiento"
-
-#: src/main.py:204
-msgid "operational"
-msgstr "operativo"
-
-#: src/api/health.py:60 src/api/health.py:74 src/api/health.py:75
-#: src/api/health.py:98 src/api/health.py:133 src/api/health.py:141
-#: src/api/i18n.py:94
+#. Status messages
+#: src/constants/user_messages.py (StatusMessages)
 msgid "healthy"
 msgstr "saludable"
 
-#: src/api/health.py:69
-msgid "status"
-msgstr "estado"
-
-#: src/api/health.py:72 src/api/health.py:76 src/api/health.py:126
-#: src/api/health.py:136
 msgid "unhealthy"
 msgstr "no saludable"
 
-#: src/api/i18n.py:60
+msgid "operational"
+msgstr "operativo"
+
+msgid "success"
+msgstr "éxito"
+
+msgid "error"
+msgstr "error"
+
+msgid "pending"
+msgstr "pendiente"
+
+#. Authentication messages
+#: src/constants/user_messages.py (AuthMessages)
+msgid "Authentication required"
+msgstr "Autenticación requerida"
+
+msgid "Authentication failed"
+msgstr "Autenticación fallida"
+
+msgid "Invalid credentials"
+msgstr "Credenciales inválidas"
+
+msgid "Token has expired"
+msgstr "El token ha expirado"
+
+msgid "Invalid token"
+msgstr "Token inválido"
+
+msgid "Session has expired"
+msgstr "La sesión ha expirado"
+
+msgid "Insufficient permissions"
+msgstr "Permisos insuficientes"
+
+msgid "Access denied"
+msgstr "Acceso denegado"
+
+#. Validation messages
+#: src/constants/user_messages.py (ValidationMessages)
+msgid "Validation error"
+msgstr "Error de validación"
+
+msgid "Invalid input"
+msgstr "Entrada inválida"
+
+msgid "This field is required"
+msgstr "Este campo es obligatorio"
+
+msgid "Invalid format"
+msgstr "Formato inválido"
+
+msgid "Value is too short"
+msgstr "El valor es demasiado corto"
+
+msgid "Value is too long"
+msgstr "El valor es demasiado largo"
+
+msgid "Invalid email address"
+msgstr "Dirección de correo electrónico inválida"
+
+msgid "Invalid URL"
+msgstr "URL inválida"
+
+msgid "Invalid date"
+msgstr "Fecha inválida"
+
+msgid "Invalid license number"
+msgstr "Número de licencia inválido"
+
+msgid "Invalid phone number"
+msgstr "Número de teléfono inválido"
+
+msgid "Invalid postal code"
+msgstr "Código postal inválido"
+
+msgid "Invalid state code"
+msgstr "Código de estado inválido"
+
+#. Record operation messages
+#: src/constants/user_messages.py (RecordMessages)
+msgid "Record created successfully"
+msgstr "Registro creado exitosamente"
+
+msgid "Record updated successfully"
+msgstr "Registro actualizado exitosamente"
+
+msgid "Record deleted successfully"
+msgstr "Registro eliminado exitosamente"
+
+msgid "Record not found"
+msgstr "Registro no encontrado"
+
+msgid "Duplicate record"
+msgstr "Registro duplicado"
+
+#. Error messages
+#: src/constants/user_messages.py (ErrorMessages)
+msgid "Bad request"
+msgstr "Solicitud incorrecta"
+
+msgid "Not found"
+msgstr "No encontrado"
+
+msgid "An error occurred"
+msgstr "Ocurrió un error"
+
+msgid "Service temporarily unavailable"
+msgstr "Servicio temporalmente no disponible"
+
+msgid "Rate limit exceeded"
+msgstr "Límite de solicitudes excedido"
+
+msgid "Quota exceeded"
+msgstr "Cuota excedida"
+
+#. I18n messages
+#: src/constants/user_messages.py (I18nMessages)
 msgid "Current locale is set to"
 msgstr "El idioma actual está configurado en"
 
-#: src/api/i18n.py:77
 msgid "Locale is supported"
 msgstr "El idioma está soportado"
 
-#: src/api/i18n.py:83
 msgid "Locale is not supported"
 msgstr "El idioma no está soportado"
 
-#: src/api/i18n.py:95
+msgid "Locale changed successfully"
+msgstr "Idioma cambiado exitosamente"
+
+msgid "Compliance Engine API"
+msgstr "API del Motor de Cumplimiento"
+
 msgid "System is operating normally"
 msgstr "El sistema está funcionando normalmente"
-

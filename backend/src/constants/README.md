@@ -1,54 +1,115 @@
 # Python Backend String Constants System
 
-This system provides centralized string constants for internationalization in the FastAPI backend, similar to the frontend TypeScript implementation.
+This system provides centralized string constants for internationalization in the FastAPI backend.
 
-## Benefits
+## Two-File Structure
 
-1. **Avoid Magic Strings**: Use typed constants instead of string literals for translation keys
-2. **Track Usage**: See how often each translation is used across the codebase
-3. **Consolidation Opportunities**: Identify duplicate translations that can be consolidated  
-4. **IDE Support**: Get autocomplete and type checking for translation keys
-5. **Refactoring Safety**: Change translation keys in one place
-6. **Performance Analytics**: Monitor which strings are used most frequently
+The constants are split into two files based on translation needs:
 
-## Quick Start
-
-### Basic Usage
+### `user_messages.py` - Translatable Strings (MSG)
+User-facing messages that appear in API responses. These **must** have translations in `.po` files.
 
 ```python
-from constants.strings import STRINGS
+from constants.user_messages import MSG
 from utils.i18n_helpers import t
 
-# Use string constants with translation function
-message = t(STRINGS.COMMON.SUCCESS)
-error_msg = t(STRINGS.AUTH.ACCESS_DENIED)
+# Use the t() function to get translated strings
+message = t(MSG.SUCCESS)
+error_msg = t(MSG.AUTH.ACCESS_DENIED)
+health = t(MSG.STATUS.HEALTHY)
 ```
 
-### Using Helper Functions
+### `internal.py` - Internal Constants (INTERNAL)
+Logging, diagnostics, audit trails, and proper nouns. English only - no translation needed.
 
 ```python
-from constants.strings import t_success, t_error, t_healthy
-from utils.i18n_helpers import get_translator
+from constants.internal import INTERNAL
 
-# Quick helper functions
-success_msg = t_success()
-error_msg = t_error()
-health_status = t_healthy()
-
-# Context-aware translator
-translator = get_translator(request)
-message = translator.success()
-auth_msg = translator.auth_failed()
+logger.info(INTERNAL.DB.CONNECTED)
+logger.warning(INTERNAL.SECURITY.VIOLATION_DETECTED)
+provider = INTERNAL.OAUTH_PROVIDERS.GOOGLE  # Proper noun
 ```
 
-### Using the TranslationContext
+## MSG Categories
+
+### Status (`MSG.STATUS`)
+```python
+MSG.STATUS.HEALTHY      # "healthy"
+MSG.STATUS.UNHEALTHY    # "unhealthy"
+MSG.STATUS.SUCCESS      # "success"
+MSG.STATUS.ERROR        # "error"
+MSG.STATUS.PENDING      # "pending"
+MSG.STATUS.OPERATIONAL  # "operational"
+```
+
+### Authentication (`MSG.AUTH`)
+```python
+MSG.AUTH.AUTHENTICATION_REQUIRED   # "Authentication required"
+MSG.AUTH.AUTHENTICATION_FAILED     # "Authentication failed"
+MSG.AUTH.TOKEN_EXPIRED             # "Token has expired"
+MSG.AUTH.ACCESS_DENIED             # "Access denied"
+MSG.AUTH.INSUFFICIENT_PERMISSIONS  # "Insufficient permissions"
+```
+
+### Validation (`MSG.VALIDATION`)
+```python
+MSG.VALIDATION.VALIDATION_ERROR  # "Validation error"
+MSG.VALIDATION.REQUIRED_FIELD    # "This field is required"
+MSG.VALIDATION.INVALID_FORMAT    # "Invalid format"
+MSG.VALIDATION.INVALID_EMAIL     # "Invalid email address"
+```
+
+### Records (`MSG.RECORD`)
+```python
+MSG.RECORD.RECORD_CREATED    # "Record created successfully"
+MSG.RECORD.RECORD_UPDATED    # "Record updated successfully"
+MSG.RECORD.RECORD_DELETED    # "Record deleted successfully"
+MSG.RECORD.RECORD_NOT_FOUND  # "Record not found"
+```
+
+### Errors (`MSG.ERROR`)
+```python
+MSG.ERROR.BAD_REQUEST          # "Bad request"
+MSG.ERROR.NOT_FOUND            # "Not found"
+MSG.ERROR.INTERNAL_ERROR       # "An error occurred"
+MSG.ERROR.SERVICE_UNAVAILABLE  # "Service temporarily unavailable"
+MSG.ERROR.RATE_LIMIT_EXCEEDED  # "Rate limit exceeded"
+```
+
+## INTERNAL Categories
+
+### Database Status (`INTERNAL.DB`)
+```python
+INTERNAL.DB.CONNECTED           # "Database connected"
+INTERNAL.DB.CONNECTION_FAILED   # "Database connection failed"
+INTERNAL.DB.POOL_EXHAUSTED      # "Connection pool exhausted"
+```
+
+### Security Events (`INTERNAL.SECURITY`)
+```python
+INTERNAL.SECURITY.VIOLATION_DETECTED   # "Security violation detected"
+INTERNAL.SECURITY.SUSPICIOUS_ACTIVITY  # "Suspicious activity detected"
+INTERNAL.SECURITY.IP_BLOCKED           # "IP address blocked"
+```
+
+### OAuth Providers (`INTERNAL.OAUTH_PROVIDERS`)
+Proper nouns - never translated:
+```python
+INTERNAL.OAUTH_PROVIDERS.GOOGLE     # "Google"
+INTERNAL.OAUTH_PROVIDERS.MICROSOFT  # "Microsoft"
+INTERNAL.OAUTH_PROVIDERS.GITHUB     # "GitHub"
+```
+
+## Using the TranslationContext
+
+For request-scoped translations with convenient helper methods:
 
 ```python
 from utils.i18n_helpers import get_translator
 
 async def my_endpoint(request: Request):
     t = get_translator(request)
-    
+
     return {
         "status": t.success(),
         "message": t.record_created(),
@@ -56,284 +117,52 @@ async def my_endpoint(request: Request):
     }
 ```
 
-## String Categories
+## Translation Workflow
 
-### Common Strings (`STRINGS.COMMON`)
-Frequently used status indicators and actions:
-```python
-STRINGS.COMMON.HEALTHY           # "healthy"
-STRINGS.COMMON.UNHEALTHY         # "unhealthy" 
-STRINGS.COMMON.SUCCESS           # "success"
-STRINGS.COMMON.ERROR             # "error"
-STRINGS.COMMON.OPERATIONAL       # "operational"
-```
+```bash
+cd backend
+source .venv/bin/activate
 
-### Authentication (`STRINGS.AUTH`)
-Authentication and authorization messages:
-```python
-STRINGS.AUTH.AUTHENTICATION_FAILED    # "Authentication failed"
-STRINGS.AUTH.ACCESS_DENIED            # "Access denied"
-STRINGS.AUTH.TOKEN_EXPIRED            # "Token has expired"
-STRINGS.AUTH.INSUFFICIENT_PERMISSIONS # "Insufficient permissions"
-```
+# Extract strings (updates messages.pot)
+pybabel extract -F babel.cfg -o messages.pot src/
 
-### Validation (`STRINGS.VALIDATION`)
-Input validation error messages:
-```python
-STRINGS.VALIDATION.VALIDATION_ERROR   # "Validation error"
-STRINGS.VALIDATION.REQUIRED_FIELD     # "This field is required"
-STRINGS.VALIDATION.INVALID_FORMAT     # "Invalid format"
-STRINGS.VALIDATION.INVALID_EMAIL      # "Invalid email address"
-```
+# Update translation files
+pybabel update -i messages.pot -d locales
 
-### Database (`STRINGS.DATABASE`)
-Database operation messages:
-```python
-STRINGS.DATABASE.RECORD_CREATED       # "Record created successfully"
-STRINGS.DATABASE.RECORD_NOT_FOUND     # "Record not found"
-STRINGS.DATABASE.DATABASE_ERROR       # "Database error occurred"
-STRINGS.DATABASE.CONNECTION_FAILED    # "Database connection failed"
-```
-
-### OIDC (`STRINGS.OIDC`)
-OAuth/OIDC verification messages:
-```python
-STRINGS.OIDC.VERIFICATION_SUCCESSFUL  # "OAuth verification successful"
-STRINGS.OIDC.DEPLOYMENT_ALLOWED       # "Deployment allowed - all providers verified"
-STRINGS.OIDC.GOOGLE                   # "Google"
-STRINGS.OIDC.MICROSOFT                # "Microsoft"
-```
-
-### Errors (`STRINGS.ERROR`)
-HTTP and business logic errors:
-```python
-STRINGS.ERROR.NOT_FOUND               # "Not found"
-STRINGS.ERROR.INTERNAL_SERVER_ERROR   # "Internal server error"
-STRINGS.ERROR.INVALID_OPERATION       # "Invalid operation"
-```
-
-## Usage Tracking & Analytics
-
-The system automatically tracks string usage in development mode:
-
-```python
-from constants.strings import print_usage_stats, get_string_usage_stats
-from utils.i18n_helpers import track_translation_coverage
-
-# Print usage statistics
-print_usage_stats()
-
-# Get programmatic access to stats
-stats = get_string_usage_stats()
-print(f"Most used: {max(stats, key=stats.get)}")
-
-# Check translation coverage
-coverage = track_translation_coverage()
-print(f"Coverage: {coverage['coverage_percent']}%")
-```
-
-Example output:
-```
-=== String Usage Statistics ===
-Translation Key                                      Count
-------------------------------------------------------------
-healthy                                                 45
-success                                                 23
-error                                                   18
-Authentication failed                                   12
-Record not found                                         8
-
-Total unique strings: 156
-Total usage count: 342
-Average usage per string: 2.2
-```
-
-## Advanced Features
-
-### Context-Aware Translation
-
-```python
-from utils.i18n_helpers import t_with_context
-
-# Different contexts for same base string
-admin_success = t_with_context(STRINGS.COMMON.SUCCESS, context="admin_panel")
-user_success = t_with_context(STRINGS.COMMON.SUCCESS, context="user_dashboard")
-```
-
-### Pluralization Support
-
-```python
-from utils.i18n_helpers import t_pluralize
-
-# Handles singular/plural forms
-message = t_pluralize("record_found", count=users.count())
-# count=1: "1 record found"
-# count=5: "5 records found"
-```
-
-### Response Message Decoration
-
-```python
-from utils.i18n_helpers import translate_response
-from constants.strings import STRINGS
-
-@translate_response(STRINGS.DATABASE.RECORD_CREATED)
-async def create_user():
-    # Function logic here
-    return {"message": "placeholder"}  # Will be auto-translated
-```
-
-### Validation & Health Checks
-
-```python
-from constants.strings import validate_all_strings
-from utils.i18n_helpers import validate_translations
-
-# Validate string constants are properly defined
-if validate_all_strings():
-    print("All string constants are valid")
-
-# Check translation coverage
-validation = validate_translations()
-if not validation["validation_passed"]:
-    print(f"Missing translations: {validation['missing_count']}")
-```
-
-## Integration with fastapi-babel
-
-The system integrates seamlessly with existing fastapi-babel setup:
-
-```python
-# In your FastAPI app
-from fastapi_babel import Babel, BabelConfigs
-
-configs = BabelConfigs(
-    ROOT_DIR=__file__,
-    BABEL_DEFAULT_LOCALE="en", 
-    BABEL_TRANSLATION_DIRECTORY="locales"
-)
-
-babel = Babel(configs=configs)
-app.add_middleware(BabelMiddleware, babel=babel)
-```
-
-Translation files remain the same format:
-```po
-# locales/es/LC_MESSAGES/messages.po
-msgid "healthy"
-msgstr "saludable"
-
-msgid "Authentication failed"  
-msgstr "Falló la autenticación"
-```
-
-## Best Practices
-
-### Do ✅
-
-```python
-# Use string constants
-message = t(STRINGS.COMMON.SUCCESS)
-
-# Use helper functions for common strings
-status = t_healthy()
-
-# Use context-aware translator
-translator = get_translator(request)
-auth_msg = translator.auth_failed()
-
-# Group related functionality
-class UserService:
-    def __init__(self, request: Request):
-        self.t = get_translator(request)
-    
-    async def create_user(self):
-        # ... logic ...
-        return {"message": self.t.record_created()}
-```
-
-### Don't ❌
-
-```python
-# Don't use magic strings
-message = _("success")  # Hard to track, typo-prone
-
-# Don't duplicate string constants
-AUTH_FAILED = "Authentication failed"
-LOGIN_ERROR = "Authentication failed"  # Should reuse same constant
-
-# Don't hardcode strings
-return {"error": "Not found"}  # Not translatable
+# Compile for production
+pybabel compile -d locales
 ```
 
 ## Adding New Strings
 
-1. **Check for existing strings**: Look through `STRINGS` to see if a similar translation exists
-2. **Choose the right category**: Add to appropriate class in `strings.py`
-3. **Use descriptive names**: `AUTHENTICATION_FAILED` is better than `AUTH_ERR_1`
-4. **Update helper functions**: Add to `i18n_helpers.py` if commonly used
-5. **Add to translation files**: Update both `en` and `es` `.po` files
-6. **Compile translations**: Run `pybabel compile -d locales`
+1. **User-facing?** Add to `user_messages.py` under the appropriate class
+2. **Internal only?** Add to `internal.py` under the appropriate class
+3. **User-facing strings** must be added to `messages.pot` and translated in `.po` files
+4. Run `pybabel compile -d locales` after updating translations
 
-## Translation File Management
+## Best Practices
 
-After adding new constants, update translation files:
-
-```bash
-# Extract new strings
-cd backend
-source .venv/bin/activate
-pybabel extract -F babel.cfg -o messages.pot src/
-
-# Update existing translations
-pybabel update -i messages.pot -d locales
-
-# Compile for use
-pybabel compile -d locales
-
-# Test translations
-python test_i18n.py
-```
-
-## Performance Considerations
-
-- **Usage tracking** only runs in development mode
-- **String constants** are loaded once at startup
-- **Translation caching** handled by fastapi-babel
-- **Memory overhead** is minimal (constants are just strings)
-
-## Example: Complete Endpoint Implementation
-
+### Do
 ```python
-from fastapi import APIRouter, Request, HTTPException
-from utils.i18n_helpers import get_translator, t
-from constants.strings import STRINGS
+# Use MSG for user responses
+return {"message": t(MSG.RECORD.RECORD_CREATED)}
 
-router = APIRouter()
+# Use INTERNAL for logging
+logger.error(INTERNAL.DB.CONNECTION_FAILED, error=str(e))
 
-@router.get("/users/{user_id}")
-async def get_user(user_id: int, request: Request):
-    translator = get_translator(request)
-    
-    try:
-        user = await UserService.get_by_id(user_id)
-        if not user:
-            raise HTTPException(
-                status_code=404,
-                detail=translator.record_not_found()
-            )
-        
-        return {
-            "status": translator.success(),
-            "data": user,
-            "message": t(STRINGS.DATABASE.RECORD_FOUND)
-        }
-        
-    except DatabaseError:
-        raise HTTPException(
-            status_code=500,
-            detail=translator.database_error()
-        )
+# Use TranslationContext for multiple translations
+translator = get_translator(request)
+return {"status": translator.success(), "detail": translator.record_created()}
 ```
 
-This approach provides type safety, usage tracking, and easy maintenance while preserving the existing fastapi-babel translation workflow.
+### Don't
+```python
+# Don't use magic strings
+message = _("success")  # Hard to track
+
+# Don't translate internal messages
+logger.info(t(INTERNAL.DB.CONNECTED))  # Unnecessary translation
+
+# Don't mix concerns
+return {"message": INTERNAL.SECURITY.VIOLATION_DETECTED}  # Security message to user
+```

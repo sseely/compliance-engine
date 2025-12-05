@@ -1,14 +1,13 @@
-# Translations template for PROJECT.
-# Copyright (C) 2025 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# Translations template for Compliance Engine.
+# Copyright (C) 2025 Compliance Engine
+# This file is distributed under the same license as the Compliance Engine project.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-11-01 20:33-0500\n"
+"Project-Id-Version: Compliance Engine 1.0\n"
+"Report-Msgid-Bugs-To: support@complianceengine.com\n"
+"POT-Creation-Date: 2025-12-04 20:30-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,42 +16,146 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: src/api/i18n.py:96 src/main.py:200
-msgid "Compliance Engine API"
-msgstr ""
-
-#: src/main.py:204
-msgid "operational"
-msgstr ""
-
-#: src/api/health.py:60 src/api/health.py:74 src/api/health.py:75
-#: src/api/health.py:98 src/api/health.py:133 src/api/health.py:141
-#: src/api/i18n.py:94
+#. Status messages
+#: src/constants/user_messages.py (StatusMessages)
 msgid "healthy"
 msgstr ""
 
-#: src/api/health.py:69
-msgid "status"
-msgstr ""
-
-#: src/api/health.py:72 src/api/health.py:76 src/api/health.py:126
-#: src/api/health.py:136
 msgid "unhealthy"
 msgstr ""
 
-#: src/api/i18n.py:60
+msgid "operational"
+msgstr ""
+
+msgid "success"
+msgstr ""
+
+msgid "error"
+msgstr ""
+
+msgid "pending"
+msgstr ""
+
+#. Authentication messages
+#: src/constants/user_messages.py (AuthMessages)
+msgid "Authentication required"
+msgstr ""
+
+msgid "Authentication failed"
+msgstr ""
+
+msgid "Invalid credentials"
+msgstr ""
+
+msgid "Token has expired"
+msgstr ""
+
+msgid "Invalid token"
+msgstr ""
+
+msgid "Session has expired"
+msgstr ""
+
+msgid "Insufficient permissions"
+msgstr ""
+
+msgid "Access denied"
+msgstr ""
+
+#. Validation messages
+#: src/constants/user_messages.py (ValidationMessages)
+msgid "Validation error"
+msgstr ""
+
+msgid "Invalid input"
+msgstr ""
+
+msgid "This field is required"
+msgstr ""
+
+msgid "Invalid format"
+msgstr ""
+
+msgid "Value is too short"
+msgstr ""
+
+msgid "Value is too long"
+msgstr ""
+
+msgid "Invalid email address"
+msgstr ""
+
+msgid "Invalid URL"
+msgstr ""
+
+msgid "Invalid date"
+msgstr ""
+
+msgid "Invalid license number"
+msgstr ""
+
+msgid "Invalid phone number"
+msgstr ""
+
+msgid "Invalid postal code"
+msgstr ""
+
+msgid "Invalid state code"
+msgstr ""
+
+#. Record operation messages
+#: src/constants/user_messages.py (RecordMessages)
+msgid "Record created successfully"
+msgstr ""
+
+msgid "Record updated successfully"
+msgstr ""
+
+msgid "Record deleted successfully"
+msgstr ""
+
+msgid "Record not found"
+msgstr ""
+
+msgid "Duplicate record"
+msgstr ""
+
+#. Error messages
+#: src/constants/user_messages.py (ErrorMessages)
+msgid "Bad request"
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid "An error occurred"
+msgstr ""
+
+msgid "Service temporarily unavailable"
+msgstr ""
+
+msgid "Rate limit exceeded"
+msgstr ""
+
+msgid "Quota exceeded"
+msgstr ""
+
+#. I18n messages
+#: src/constants/user_messages.py (I18nMessages)
 msgid "Current locale is set to"
 msgstr ""
 
-#: src/api/i18n.py:77
 msgid "Locale is supported"
 msgstr ""
 
-#: src/api/i18n.py:83
 msgid "Locale is not supported"
 msgstr ""
 
-#: src/api/i18n.py:95
-msgid "System is operating normally"
+msgid "Locale changed successfully"
 msgstr ""
 
+msgid "Compliance Engine API"
+msgstr ""
+
+msgid "System is operating normally"
+msgstr ""
