@@ -344,6 +344,13 @@ coverage/
 test-results/
 playwright-report/
 playwright/.cache/
+.playwright-mcp/
+
+# Backend coverage outputs
+backend/coverage_html/
+backend/coverage.json
+backend/.coverage
+backend/.coverage.*
 
 # =============================================================================
 # LOGS & MONITORING
