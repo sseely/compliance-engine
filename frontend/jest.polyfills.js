@@ -1,29 +1,13 @@
-// Polyfill "fetch" for Node.js environments
-import { TextEncoder, TextDecoder } from 'util'
-import { ReadableStream } from 'web-streams-polyfill'
+// Polyfills for Jest test environment
+// Node.js 18+ has native fetch, TextEncoder, TextDecoder, etc.
+// These polyfills are only needed for ReadableStream in jsdom environment
 
-// Polyfill fetch for Node.js
-if (!global.fetch) {
-  global.fetch = require('node-fetch')
-}
+const { TextEncoder, TextDecoder } = require('util')
+const { ReadableStream } = require('web-streams-polyfill')
 
-// Polyfill TextEncoder/TextDecoder
+// Polyfill TextEncoder/TextDecoder (jsdom may not have these)
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 
 // Polyfill ReadableStream
 global.ReadableStream = ReadableStream
-
-// Polyfill Request/Response for Node.js
-if (!global.Request) {
-  global.Request = require('node-fetch').Request
-}
-
-if (!global.Response) {
-  global.Response = require('node-fetch').Response
-}
-
-// Polyfill Headers for Node.js
-if (!global.Headers) {
-  global.Headers = require('node-fetch').Headers
-}

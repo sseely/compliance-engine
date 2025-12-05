@@ -1,0 +1,38 @@
+[run]
+source = src
+branch = True
+parallel = True
+# Using thread concurrency for async uvicorn
+concurrency = thread
+# Omit test files and config from coverage
+omit =
+    */tests/*
+    */__pycache__/*
+    */migrations/*
+    */.venv/*
+
+[report]
+# Show missing lines in report
+show_missing = True
+# Precision for coverage percentages
+precision = 2
+# Skip files with 100% coverage in summary
+skip_covered = False
+# Fail under this percentage
+fail_under = 0
+
+# Exclude patterns from coverage
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    if __name__ == .__main__.:
+    pass
+    \.\.\.
+
+[html]
+directory = coverage_html
+
+[json]
+output = coverage.json

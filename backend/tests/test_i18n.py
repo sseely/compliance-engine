@@ -2,7 +2,12 @@
 """
 Simple test script to verify internationalization functionality
 Tests translation system without full FastAPI setup
+
+NOTE: This is a standalone script, not a pytest module.
+Run directly with: python tests/test_i18n.py
 """
+import pytest
+pytestmark = pytest.mark.skip(reason="Standalone script, not pytest tests")
 
 import os
 import sys

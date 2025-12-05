@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use 'variables' as *;
 
 // Button Mixins
@@ -16,12 +17,12 @@
   text-decoration: none;
   cursor: pointer;
   transition: all $transition-fast;
-  
+
   &:focus {
     outline: 2px solid var(--color-brand-primary);
     outline-offset: 2px;
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -33,15 +34,15 @@
   background-color: var(--color-brand-primary);
   border-color: var(--color-brand-primary);
   color: white;
-  
+
   &:hover:not(:disabled) {
-    background-color: darken($brand-primary, 8%);
-    border-color: darken($brand-primary, 8%);
+    background-color: color.adjust($brand-primary, $lightness: -8%);
+    border-color: color.adjust($brand-primary, $lightness: -8%);
   }
-  
+
   &:active:not(:disabled) {
-    background-color: darken($brand-primary, 12%);
-    border-color: darken($brand-primary, 12%);
+    background-color: color.adjust($brand-primary, $lightness: -12%);
+    border-color: color.adjust($brand-primary, $lightness: -12%);
   }
 }
 
@@ -50,12 +51,12 @@
   background-color: transparent;
   border-color: var(--color-border);
   color: var(--color-text-primary);
-  
+
   &:hover:not(:disabled) {
     background-color: var(--color-surface);
     border-color: var(--color-brand-primary);
   }
-  
+
   &:active:not(:disabled) {
     background-color: var(--color-brand-tertiary);
   }
@@ -66,11 +67,11 @@
   background-color: transparent;
   border-color: transparent;
   color: var(--color-brand-primary);
-  
+
   &:hover:not(:disabled) {
     background-color: var(--color-surface);
   }
-  
+
   &:active:not(:disabled) {
     background-color: var(--color-brand-tertiary);
   }
@@ -89,26 +90,26 @@
   line-height: $line-height-normal;
   color: var(--color-text-primary);
   transition: border-color $transition-fast, box-shadow $transition-fast;
-  
+
   &::placeholder {
     color: var(--color-text-muted);
   }
-  
+
   &:focus {
     outline: none;
     border-color: var(--color-brand-primary);
     box-shadow: 0 0 0 3px rgba($brand-primary, 0.1);
   }
-  
+
   &:disabled {
     background-color: var(--color-surface);
     opacity: 0.6;
     cursor: not-allowed;
   }
-  
+
   &.error {
     border-color: var(--color-error);
-    
+
     &:focus {
       border-color: var(--color-error);
       box-shadow: 0 0 0 3px rgba($status-error, 0.1);
@@ -160,28 +161,28 @@
 @mixin badge-success {
   @include badge-base;
   background-color: rgba($status-success, 0.1);
-  color: darken($status-success, 20%);
+  color: color.adjust($status-success, $lightness: -20%);
   border: 1px solid rgba($status-success, 0.2);
 }
 
 @mixin badge-warning {
   @include badge-base;
   background-color: rgba($status-warning, 0.1);
-  color: darken($status-warning, 20%);
+  color: color.adjust($status-warning, $lightness: -20%);
   border: 1px solid rgba($status-warning, 0.2);
 }
 
 @mixin badge-error {
   @include badge-base;
   background-color: rgba($status-error, 0.1);
-  color: darken($status-error, 20%);
+  color: color.adjust($status-error, $lightness: -20%);
   border: 1px solid rgba($status-error, 0.2);
 }
 
 @mixin badge-info {
   @include badge-base;
   background-color: rgba($status-info, 0.1);
-  color: darken($status-info, 20%);
+  color: color.adjust($status-info, $lightness: -20%);
   border: 1px solid rgba($status-info, 0.2);
 }
 
@@ -262,9 +263,9 @@
 
 // Loading State Mixin
 @mixin loading-skeleton {
-  background: linear-gradient(90deg, 
-    var(--color-surface) 25%, 
-    rgba($neutral-200, 0.5) 50%, 
+  background: linear-gradient(90deg,
+    var(--color-surface) 25%,
+    rgba($neutral-200, 0.5) 50%,
     var(--color-surface) 75%
   );
   background-size: 200% 100%;
@@ -286,7 +287,7 @@
     outline: 2px solid var(--color-brand-primary);
     outline-offset: 2px;
   }
-  
+
   &:focus:not(:focus-visible) {
     outline: none;
   }

@@ -11,10 +11,10 @@ import { LICENSE_STATUSES, TIMING } from '@/constants';
 async function mockVerifyLicense(data: FormData): Promise<VerificationResult> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, TIMING.DEMO_VERIFICATION_DELAY));
-  
+
   // Mock response based on license number
   const mockSuccess = data.licenseNumber.toLowerCase().includes('valid');
-  
+
   if (mockSuccess) {
     return {
       verified: true,
@@ -83,21 +83,19 @@ export default function HomePage() {
   };
 
   return (
-    <main>
-      <div className="container">
-        <header style={{ textAlign: 'center', padding: '2rem 0' }}>
-          <h1>{t('title')}</h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.125rem' }}>
-            {t('subtitle')}
-          </p>
-        </header>
+    <div className="container">
+      <header style={{ textAlign: 'center', padding: '2rem 0' }}>
+        <h1>{t('title')}</h1>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.125rem' }}>
+          {t('subtitle')}
+        </p>
+      </header>
 
-        {result ? (
-          <LicenseVerificationResult result={result} onReset={handleReset} />
-        ) : (
-          <LicenseVerificationForm onSubmit={handleFormSubmit} isLoading={isLoading} />
-        )}
-      </div>
-    </main>
+      {result ? (
+        <LicenseVerificationResult result={result} onReset={handleReset} />
+      ) : (
+        <LicenseVerificationForm onSubmit={handleFormSubmit} isLoading={isLoading} />
+      )}
+    </div>
   );
 }

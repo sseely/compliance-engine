@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -25,10 +25,14 @@ export async function generateMetadata({
     description: t('subtitle'),
     keywords: 'license verification, professional credentials, compliance, medical license, nursing license',
     authors: [{ name: 'Compliance Engine Team' }],
-    viewport: 'width=device-width, initial-scale=1',
     robots: 'index, follow',
   };
 }
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

@@ -108,7 +108,7 @@ export default function LicenseVerificationForm({ onSubmit, isLoading = false }:
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="license-verification-form" noValidate>
+        <form onSubmit={handleSubmit} className="license-verification-form" noValidate aria-label="License verification form">
           <div className="license-verification-grid">
             <div className="license-verification-field">
               <label htmlFor="licenseNumber" className="license-verification-label">

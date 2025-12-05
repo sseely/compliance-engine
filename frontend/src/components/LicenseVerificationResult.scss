@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
@@ -272,13 +273,13 @@
 .alertWarning {
   background-color: rgba($status-warning, 0.1);
   border: 1px solid rgba($status-warning, 0.2);
-  color: darken($status-warning, 20%);
+  color: color.adjust($status-warning, $lightness: -20%);
 }
 
 .alertError {
   background-color: rgba($status-error, 0.1);
   border: 1px solid rgba($status-error, 0.2);
-  color: darken($status-error, 20%);
+  color: color.adjust($status-error, $lightness: -20%);
 }
 
 .footer {
@@ -336,7 +337,7 @@
   }
   
   &:hover {
-    color: darken($brand-primary, 8%);
+    color: color.adjust($brand-primary, $lightness: -8%);
   }
 }
 
