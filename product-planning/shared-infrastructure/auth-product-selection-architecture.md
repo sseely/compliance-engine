@@ -162,8 +162,9 @@ CREATE TABLE user_identities (
     provider VARCHAR(50) NOT NULL,  -- 'google', 'microsoft', 'linkedin', 'apple'
     provider_user_id VARCHAR(255) NOT NULL,
     provider_email VARCHAR(255),
-    provider_data JSONB,  -- raw claims from provider
+    provider_data JSONB,  -- filtered claims from provider (volatile claims excluded)
     created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),  -- tracks last login via this provider
     UNIQUE(provider, provider_user_id)
 );
 
@@ -263,13 +264,19 @@ CREATE INDEX idx_org_invitations_email ON organization_invitations(email);
 ### Stored Procedures
 
 ```sql
+-- Volatile claims to exclude from storage (change on every login)
+-- These are filtered out before storing/comparing claims
+-- Examples: iat, exp, nbf, auth_time, nonce, at_hash, c_hash, sid
+COMMENT ON TABLE user_identities IS 'Volatile OIDC claims excluded from provider_data: iat, exp, nbf, auth_time, nonce, at_hash, c_hash, sid, jti, acr, amr, azp';
+
 -- Find or create user from OIDC callback
+-- Claims are refreshed on every login; audit log entry created only when claims change
 CREATE OR REPLACE FUNCTION authenticate_oidc_user(
     p_provider VARCHAR,
     p_provider_user_id VARCHAR,
     p_email VARCHAR,
     p_name VARCHAR,
-    p_provider_data JSONB
+    p_provider_data JSONB  -- Caller must filter volatile claims before passing
 ) RETURNS TABLE(
     user_id UUID,
     is_new_user BOOLEAN,
@@ -279,9 +286,12 @@ DECLARE
     v_user_id UUID;
     v_identity_id UUID;
     v_is_new BOOLEAN := FALSE;
+    v_old_claims JSONB;
+    v_claims_changed BOOLEAN := FALSE;
 BEGIN
     -- Check if identity already exists
-    SELECT ui.user_id INTO v_user_id
+    SELECT ui.user_id, ui.id, ui.provider_data
+    INTO v_user_id, v_identity_id, v_old_claims
     FROM user_identities ui
     WHERE ui.provider = p_provider AND ui.provider_user_id = p_provider_user_id;
 
@@ -299,9 +309,37 @@ BEGIN
             v_is_new := TRUE;
         END IF;
 
-        -- Link identity to user
+        -- Link identity to user (first login with this provider)
         INSERT INTO user_identities (user_id, provider, provider_user_id, provider_email, provider_data)
         VALUES (v_user_id, p_provider, p_provider_user_id, p_email, p_provider_data);
+    ELSE
+        -- Existing identity - check if claims changed
+        v_claims_changed := (v_old_claims IS DISTINCT FROM p_provider_data);
+
+        IF v_claims_changed THEN
+            -- Update claims and log the change
+            UPDATE user_identities
+            SET provider_data = p_provider_data,
+                provider_email = p_email,
+                updated_at = NOW()
+            WHERE id = v_identity_id;
+
+            -- Audit the claims change (assumes audit_log table exists)
+            INSERT INTO audit_log (action, entity_type, entity_id, old_value, new_value, created_at)
+            VALUES (
+                'oidc_claims_updated',
+                'user_identity',
+                v_identity_id,
+                v_old_claims,
+                p_provider_data,
+                NOW()
+            );
+        ELSE
+            -- No claims change, just update timestamp
+            UPDATE user_identities
+            SET updated_at = NOW()
+            WHERE id = v_identity_id;
+        END IF;
     END IF;
 
     -- Update last login
@@ -613,3 +651,185 @@ function ProductGuard({ productCode, children }) {
 3. **Free tier** - Yes. Limited lifetime usage per user (not per org). Limits stored in DB with configurable defaults. Usage tracking per user.
 
 4. **Admin UI** - Internal admin UI needed to configure system-wide settings like trial limits. See GitHub Epic for details.
+
+5. **OIDC claims refresh** - Claims are updated on every login. This captures changes like name updates, email changes, and profile picture refreshes. Volatile claims that change on every login are filtered out before storage:
+   - `iat`, `exp`, `nbf` (timestamps)
+   - `auth_time`, `nonce`, `at_hash`, `c_hash` (auth session values)
+   - `sid`, `jti`, `acr`, `amr`, `azp` (session/auth context)
+
+   Audit log entries are only created when claims actually change, not on every login. The `updated_at` timestamp on `user_identities` tracks the last login via that provider.
+
+## Testing Strategy
+
+### Docker-Based OIDC Mock Server
+
+A real OIDC server running in Docker provides realistic auth testing that exercises the full OAuth flow—redirects, token exchange, JWKS validation, and claim parsing.
+
+**Why Docker over built-in mocks:**
+- Tests the actual OAuth redirect flow (not just the callback)
+- Real JWT signing with JWKS endpoint validation
+- Token expiration and refresh token handling
+- Standard `.well-known/openid-configuration` discovery
+- Catches integration issues that mocks hide
+
+**Docker Compose configuration:**
+
+```yaml
+# docker-compose.yml
+services:
+  test-oidc:
+    profiles: ["test"]
+    image: ghcr.io/soluto/oidc-server-mock:latest
+    ports:
+      - "4011:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      SERVER_OPTIONS_INLINE: |
+        {
+          "AccessTokenJwtType": "JWT",
+          "Discovery": {
+            "ShowKeySet": true
+          },
+          "IssuerUri": "http://localhost:4011"
+        }
+      USERS_CONFIGURATION_INLINE: |
+        [
+          {
+            "SubjectId": "test-alice-001",
+            "Username": "alice",
+            "Password": "test-password-123",
+            "Claims": [
+              { "Type": "name", "Value": "Alice Tester" },
+              { "Type": "email", "Value": "alice@test.example" },
+              { "Type": "email_verified", "Value": "true" },
+              { "Type": "picture", "Value": "https://example.com/alice.png" }
+            ]
+          },
+          {
+            "SubjectId": "test-bob-002",
+            "Username": "bob",
+            "Password": "test-password-123",
+            "Claims": [
+              { "Type": "name", "Value": "Bob Tester" },
+              { "Type": "email", "Value": "bob@test.example" },
+              { "Type": "email_verified", "Value": "true" }
+            ]
+          },
+          {
+            "SubjectId": "test-charlie-003",
+            "Username": "charlie",
+            "Password": "test-password-123",
+            "Claims": [
+              { "Type": "name", "Value": "Charlie Multi" },
+              { "Type": "email", "Value": "charlie@test.example" },
+              { "Type": "email_verified", "Value": "true" }
+            ]
+          },
+          {
+            "SubjectId": "test-unverified-004",
+            "Username": "unverified",
+            "Password": "test-password-123",
+            "Claims": [
+              { "Type": "name", "Value": "Unverified User" },
+              { "Type": "email", "Value": "unverified@test.example" },
+              { "Type": "email_verified", "Value": "false" }
+            ]
+          }
+        ]
+      CLIENTS_CONFIGURATION_INLINE: |
+        [
+          {
+            "ClientId": "compliance-engine-test",
+            "ClientSecrets": ["test-client-secret"],
+            "RedirectUris": [
+              "http://localhost:3000/auth/callback",
+              "http://localhost:8000/api/auth/oidc/callback"
+            ],
+            "AllowedScopes": ["openid", "profile", "email"],
+            "AllowedGrantTypes": ["authorization_code", "refresh_token"]
+          }
+        ]
+```
+
+**Test scenarios:**
+
+| User | Scenario |
+|------|----------|
+| `alice` / `alice@test.example` | Standard single-org user |
+| `bob` / `bob@test.example` | Second user for invitation/collaboration tests |
+| `charlie` / `charlie@test.example` | Multi-org user (org switcher tests) |
+| `unverified` / `unverified@test.example` | Email not verified (edge case handling) |
+
+All users share password: `test-password-123`
+
+**Running tests:**
+
+```bash
+# Start test infrastructure (runs for entire test session)
+docker compose --profile test up -d test-oidc postgres
+
+# Wait for OIDC server to be ready
+curl --retry 10 --retry-delay 1 --retry-connrefused \
+  http://localhost:4011/.well-known/openid-configuration
+
+# Run backend tests
+cd backend && pytest
+
+# Run e2e tests
+cd frontend && npx playwright test
+
+# Tear down
+docker compose --profile test down
+```
+
+**CI configuration:**
+
+```yaml
+# .github/workflows/test.yml
+jobs:
+  test:
+    services:
+      postgres:
+        image: postgres:15
+        # ...
+    steps:
+      - name: Start OIDC mock
+        run: docker compose --profile test up -d test-oidc
+
+      - name: Wait for OIDC
+        run: |
+          timeout 30 bash -c 'until curl -s http://localhost:4011/.well-known/openid-configuration; do sleep 1; done'
+
+      - name: Run tests
+        run: |
+          pytest
+          npx playwright test
+```
+
+**Backend configuration for tests:**
+
+```python
+# backend/src/core/config.py
+class Settings:
+    # OIDC providers - test provider added when ENVIRONMENT=test
+    OIDC_PROVIDERS: dict = {
+        "google": {...},
+        "microsoft": {...},
+    }
+
+    if ENVIRONMENT == "test":
+        OIDC_PROVIDERS["test"] = {
+            "issuer": "http://localhost:4011",
+            "client_id": "compliance-engine-test",
+            "client_secret": "test-client-secret",
+            "authorization_endpoint": "http://localhost:4011/connect/authorize",
+            "token_endpoint": "http://localhost:4011/connect/token",
+            "jwks_uri": "http://localhost:4011/.well-known/openid-configuration/jwks",
+        }
+```
+
+**Safety measures:**
+- **Profile gated**: Container only starts with `--profile test`
+- **Reserved TLD**: Uses `.example` per RFC 2606 (cannot conflict with real addresses)
+- **Distinct provider**: Stored as `provider='test'` in `user_identities`
+- **No production exposure**: Test OIDC provider config only loaded when `ENVIRONMENT=test`
